@@ -90,8 +90,8 @@ An RGC chart file is a text file, which...
 * MUST be UTF-8 encoded, SHOULD NOT include a BOM-mark,
 * SHOULD use LF (and not CR+LF) as line separator,
 * is a valid JSON file which...
-    * MUST have an object at the top level, and
-    * MAY NOT contain `null`.
+  * MUST have an object at the top level, and
+  * MAY NOT contain `null`.
 
 Unless otherwise specified (usually with `// custom fields allowed` comment in the pseudocode), fields of an object that are not specified in this document might not be preserved by an implementation.
 
@@ -102,7 +102,6 @@ For any field with `i64` or `u64` type, the field's value is permitted to be sto
 The order of keys in an object MAY be arbitrary.
 
 ### Top-Level Object
-
 
 ```Rust
 struct RGC {
@@ -172,8 +171,11 @@ In an RGC chart, notes' timestamps are represented with ticks, integers represen
 `Timing` specifies the relation between ticks and timestamps.
 
 ```Rust
+type Tick = u64;
+
 struct Timing {
   offset: i32?,
+  bpm: array<[Tick, f64]>,
   segment: array<TimingSegment>,
 }
 ```
@@ -181,22 +183,28 @@ struct Timing {
 * `offset`: position of the first timing segment, in milliseconds.
   * Defaults to 0.
   * "The beginning of the chart" (tick=0) refers to this position.
+    * In other words, all other entities' positions in this chart depend on this value.
+* `bpm`: an array of BPM changes.
+  * Here, 'BPM' means "\# of quarter notes per 60 seconds".
+  * BPM changes are specified with a pair of ticks and corresponding BPM.
+  * BPM changes MUST be sorted by ticks, in ascending order.
+  * There MUST be at least one BPM change, with t=0.
 * `segment`: an array of timing segments.
+  * Segments MUST be sorted by `t`, in ascending order.
+  * There MUST be at least one segment, with t=0.
 
 ```Rust
 struct TimingSegment {
-  t: i64,
-  bpm: f64,
+  t: Tick,
   sig: [u16, u16],
   res: u16?,
 }
 ```
 
-* `t`: number of ticks from the previous segment.
+* `t`: position of this timing segment, from the beginning of the chart.
   * For the first timing segment, `t` MUST be 0.
   * For other timing segments, `t` MUST be a positive integer.
   * It's permitted for the beginning point of a timing segment to not be aligned with previous timing segment's measures / beats.
-* `bpm`: \# of quarter notes per a minute.
 * `sig`: time signature, in the form of `[# of beats per measure, beat unit]`.
   * Both numbers MUST be positive integers.
   * While not a requirement, beat units are recommended to be a power of 2.
@@ -204,6 +212,8 @@ struct TimingSegment {
   * Defaults to 24 (96 ticks per a 4/4 measure) if not specified.
   * MUST be a positive integer.
   * `4*res` MUST be a multiple of the beat unit of the current timing segment.
+
+Note: currently, supports for [anacruses](https://en.wikipedia.org/wiki/Anacrusis) is omitted, due to relative complexity of handling them. Use two timing segments, one for the anacrusis and one for regular measures, when an anacrusis is needed.
 
 ### LaneGroup
 
@@ -218,17 +228,17 @@ struct LaneGroup {
   * MUST be a non-negative integer.
   * An implementation MAY heuristically determine the value if `dim` is omitted.
 * `lane`: an array of lane(= array of note)s.
-  * A lane SHOULD be sorted by `t` (ticks of notes), in ascending order.
+  * A lane MUST be sorted by `t` (ticks of notes), in ascending order.
 
 ### Note
 
 ```Rust
 struct Note {
-  t: int64,
+  t: Tick,
   id: string?,
   k: string?,
   
-  l: int64?
+  l: Tick?
   v: Pos?,
   w: Pos?,
   p: object?,
@@ -236,6 +246,7 @@ struct Note {
 ```
 
 * `t`: start tick for this note, from the beginning of the chart.
+  * In an RGC chart, all notes' ticks MUST be strictly non-negative.
 * `id` (optional): identifier for the note.
   * SHOULD match `[0-9a-z\-]+`
   * MAY be non-unique
