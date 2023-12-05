@@ -1,0 +1,3 @@
+dist/** linguist-generated
+
+**/*.rgc -linguist-detectable
