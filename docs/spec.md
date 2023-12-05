@@ -4,7 +4,7 @@ Current version: `0.1.0`
 
 ## Introduction
 
-The RGC ("rhythm game chart") file format is a JSON-based format, aims to be able to represent most 
+The RGC ("rhythm game chart") file format is a JSON-based format, aims to be able to represent charts from many different rhythm games.
 
 The RGC format is inspired by [m4saka's KSON format](https://github.com/kshootmania/ksm-chart-format/blob/master/kson_format.md) for Sound Voltex charts and [the bmson format](https://bmson-spec.readthedocs.io/en/master/doc/index.html). The RGC format aims to be easily convertible to and from either formats. However, it's not a goal for the RGC format to be compatible to either formats.
 
