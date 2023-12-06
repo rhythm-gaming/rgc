@@ -1,7 +1,7 @@
 import { default as BTree, type ISortedMap } from 'sorted-btree';
 
 import type { BPMInfo, Tick, TimeSignature, TimeSignatureInfo } from './types';
-import { createBpmInfos } from './util';
+import { createBpmInfos, createTimeSignatureInfos } from './util';
 
 export interface TimingConstructorArgs {
     res?: number|bigint;
@@ -31,7 +31,9 @@ export class Timing {
         this.bpm_by_tick = new BTree<Tick, BPMInfo>(bpm_infos.map((info) => [info.tick, info]));
         this.bpm_by_time = new BTree<number, BPMInfo>(bpm_infos.map((info) => [info.time, info]));
 
-        this.sig_by_tick = new BTree<Tick, TimeSignatureInfo>();
-        this.sig_by_time = new BTree<number, TimeSignatureInfo>();
+        const time_sig_infos: TimeSignatureInfo[] = createTimeSignatureInfos(res, this.bpm_by_tick, sig);
+
+        this.sig_by_tick = new BTree<Tick, TimeSignatureInfo>(time_sig_infos.map((info) => [info.tick, info]));
+        this.sig_by_time = new BTree<number, TimeSignatureInfo>(time_sig_infos.map((info) => [info.time, info]));
     }
 }
