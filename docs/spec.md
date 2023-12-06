@@ -173,47 +173,43 @@ In an RGC chart, notes' timestamps are represented with ticks, integers represen
 ```Rust
 type Tick = u64;
 
+type IimeSignature = [u16, u16];
+
 struct Timing {
   offset: i32?,
+  res: u16?,
   bpm: array<[Tick, f64]>,
-  segment: array<TimingSegment>,
+  sig: array<[Tick, TimeSignature]>,
 }
 ```
 
-* `offset`: position of the first timing segment, in milliseconds.
+* `offset` (optional): position of the first timing segment, in milliseconds.
   * Defaults to 0.
   * "The beginning of the chart" (tick=0) refers to this position.
     * In other words, all other entities' positions in this chart depend on this value.
+* `res` (optional): \# of ticks per a quarter note.
+  * Defaults to 24 (96 ticks per a 4/4 measure) if not specified.
+  * MUST be a positive integer.
+  * `4*res` MUST be a multiple of the beat unit of all timing segments.
 * `bpm`: an array of BPM changes.
   * Here, 'BPM' means "\# of quarter notes per 60 seconds".
   * BPM changes are specified with a pair of ticks and corresponding BPM.
   * BPM changes MUST be sorted by ticks, in ascending order.
-  * There MUST be at least one BPM change, with t=0.
-* `segment`: an array of timing segments.
-  * Segments MUST be sorted by `t`, in ascending order.
-  * There MUST be at least one segment, with t=0.
+  * There SHOULD be at least one BPM change, with t=0.
+    * If there is no BPM change specified, the default value is 120.
+    * If there is one BPM change with t≠0, it will be applied to the whole chart.
+* `sig`: an array of time signature changes.
+  * Each time signature `TimeSignature` is in the form of `[# of beat units per measure, beat unit]`.
+    * It is RECOMMENDED for beat units to be powers of 2.
+  * Time signatures MUST be sorted by `t`, in ascending order.
+  * It's permitted for a time signature to not be aligned with a previous time signature's measures / beats.
+  * There SHOULD be at least one time signature, with t=0.
+    * If there is no time signature specified, the default value is [4, 4].
+    * If there is one time signature with t≠0, it will be applied to the whole chart.
 
-```Rust
-struct TimingSegment {
-  t: Tick,
-  sig: [u16, u16],
-  res: u16?,
-}
-```
+For `bpm` and `sig`, ticks SHOULD be non-negative. It is OPTIONAL for implementations to disregard supports for negative ticks in `bpm` and `sig`.
 
-* `t`: position of this timing segment, from the beginning of the chart.
-  * For the first timing segment, `t` MUST be 0.
-  * For other timing segments, `t` MUST be a positive integer.
-  * It's permitted for the beginning point of a timing segment to not be aligned with previous timing segment's measures / beats.
-* `sig`: time signature, in the form of `[# of beats per measure, beat unit]`.
-  * Both numbers MUST be positive integers.
-  * While not a requirement, beat units are recommended to be a power of 2.
-* `res` (optional): \# of ticks per a quarter note.
-  * Defaults to 24 (96 ticks per a 4/4 measure) if not specified.
-  * MUST be a positive integer.
-  * `4*res` MUST be a multiple of the beat unit of the current timing segment.
-
-Note: currently, supports for [anacruses](https://en.wikipedia.org/wiki/Anacrusis) is omitted, due to relative complexity of handling them. Use two timing segments, one for the anacrusis and one for regular measures, when an anacrusis is needed.
+Note: currently, supports for [anacruses](https://en.wikipedia.org/wiki/Anacrusis) is omitted, due to relative complexity of handling them. Use two time signatures, one for the anacrusis and one for regular measures, when an anacrusis is needed.
 
 ### LaneGroup
 
@@ -300,9 +296,9 @@ This is the RGC chart for the "Calibration NOV" k-shoot mania chart.
   },
   "timing": {
     "offset": 1000,
-    "segment": [
-      {"t": 0, "bpm": 180, "sig": [4, 4], "res": 1}
-    ]
+    "res": 1,
+    "bpm": [[0, 120]],
+    "sig": [[0, [4, 4]]]
   },
   "chart": {
     "bt": {
