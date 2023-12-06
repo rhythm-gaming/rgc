@@ -53,6 +53,10 @@ export function createBpmInfos(res: Tick, sorted_bpm_list: Iterable<[tick: Tick,
         bpm_infos.push({...last_bpm_info});
     }
 
+    if(bpm_infos.length === 0) {
+        bpm_infos.push({tick: 0n, time: 0, bpm: 120});
+    }
+
     return bpm_infos;
 }
 
@@ -82,9 +86,14 @@ export function createTimeSignatureInfos(res: Tick, bpm_by_tick: ISortedMap<Tick
         const [_, bpm_info] = curr_bpm.value;
 
         time_sig_info.push({
-            tick, sig,
+            tick,
             time: getTimeFromBPMInfo(res_num, bpm_info, tick),
+            sig: [...sig],
         });
+    }
+
+    if(time_sig_info.length === 0) {
+        time_sig_info.push({tick: 0n, time: 0, sig: [4, 4]})
     }
 
     return time_sig_info;
