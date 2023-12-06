@@ -178,8 +178,8 @@ type IimeSignature = [u16, u16];
 struct Timing {
   offset: i32?,
   res: u16?,
-  bpm: array<[Tick, f64]>,
-  sig: array<[Tick, TimeSignature]>,
+  bpm: array<[Tick, f64]>?,
+  sig: array<[Tick, TimeSignature]>?,
 }
 ```
 
@@ -191,14 +191,14 @@ struct Timing {
   * Defaults to 24 (96 ticks per a 4/4 measure) if not specified.
   * MUST be a positive integer.
   * `4*res` MUST be a multiple of the beat unit of all timing segments.
-* `bpm`: an array of BPM changes.
+* `bpm` (SHOULD be present): an array of BPM changes.
   * Here, 'BPM' means "\# of quarter notes per 60 seconds".
   * BPM changes are specified with a pair of ticks and corresponding BPM.
   * BPM changes MUST be sorted by ticks, in ascending order.
   * There SHOULD be at least one BPM change, with t=0.
     * If there is no BPM change specified, the default value is 120.
     * If there is one BPM change with t≠0, it will be applied to the whole chart.
-* `sig`: an array of time signature changes.
+* `sig` (SHOULD be present): an array of time signature changes.
   * Each time signature `TimeSignature` is in the form of `[# of beat units per measure, beat unit]`.
     * It is RECOMMENDED for beat units to be powers of 2.
   * Time signatures MUST be sorted by `t`, in ascending order.

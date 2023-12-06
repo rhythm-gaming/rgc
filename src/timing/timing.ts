@@ -1,25 +1,37 @@
 import { default as BTree, type ISortedMap } from 'sorted-btree';
 
-import type { TimingSegment, Tick, TickRange, MeasureIdx, MeasureInfo, TimingInfo } from "./types";
+import type { BPMInfo, Tick, TimeSignature, TimeSignatureInfo } from './types';
+import { createBpmInfos } from './util';
+
+export interface TimingConstructorArgs {
+    res?: number|bigint;
+    bpm: Iterable<[tick: Tick, bpm: number]>;
+    sig: Iterable<[tick: Tick, time_signature: TimeSignature]>;
+}
 
 /**
  * Class for managing timing information of a chart.
+ * 
+ * **IMPORTANT: Chart offsets must be handled manually**, as all times are relative to the beginning of the chart (tick = 0).
  */
 export class Timing {
-    /** Replace the whole segment info with `segments`. */
-    setSegments(segments: Iterable<TimingSegment>) {}
+    resolution: bigint = 24n;
 
-    /** Replace the whole bpm info with `bpms`. */
-    setBPMs(bpms: Iterable<[Tick, number]>) {}
+    bpm_by_tick: ISortedMap<Tick, BPMInfo>;
+    bpm_by_time: ISortedMap<number, BPMInfo>;
 
-    *measures(range: TickRange): Generator<[Tick, Readonly<MeasureInfo>]> {}
-    *withTimingInfo<T>(it: IterableIterator<[Tick, T]>): Generator<[Readonly<TimingInfo>, T]> {}
+    sig_by_tick: ISortedMap<Tick, TimeSignatureInfo>;
+    sig_by_time: ISortedMap<number, TimeSignatureInfo>;
 
-    getMeasureInfoByIdx(measure_idx: MeasureIdx): MeasureInfo { throw new Error("Not yet implemented!"); }
-    getMeasureInfoByTick(tick: Tick): MeasureInfo { throw new Error("Not yet implemented!"); }
-    getTimeByTick(tick: Tick): number { throw new Error("Not yet implemented!") }
+    constructor({res=24n, bpm, sig}: TimingConstructorArgs) {
+        this.resolution = res = BigInt(res);
 
-    toString(): string {
-        return `[Timing with ${this.bpm_by_tick.size} bpm changes and ${this.segment_by_tick.size} segments]`;
+        const bpm_infos: BPMInfo[] = createBpmInfos(res, bpm);
+
+        this.bpm_by_tick = new BTree<Tick, BPMInfo>(bpm_infos.map((info) => [info.tick, info]));
+        this.bpm_by_time = new BTree<number, BPMInfo>(bpm_infos.map((info) => [info.time, info]));
+
+        this.sig_by_tick = new BTree<Tick, TimeSignatureInfo>();
+        this.sig_by_time = new BTree<number, TimeSignatureInfo>();
     }
 }
