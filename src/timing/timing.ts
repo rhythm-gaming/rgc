@@ -1,7 +1,17 @@
-import { default as BTree, type ISortedMap } from 'sorted-btree';
+import { BTree, type ISortedMap } from "../sorted-btree.js";
 
 import type { BPMInfo, MeasureIdx, MeasureInfo, Tick, TickRange, TimeSignature, TimeSignatureInfo, TimingInfo } from './types';
-import { createBpmInfos, createTimeSignatureInfos, getTimeFromBPMInfo } from './util';
+import { createBpmInfos, createTimeSignatureInfos, getTimeFromBPMInfo } from "./util.js";
+
+interface TimingIterators {
+    bpm: Iterator<[Tick, Readonly<BPMInfo>]>;
+    sig: Iterator<[Tick, Readonly<TimeSignatureInfo>]>;
+}
+
+interface TimingStatus {
+    bpm: Readonly<BPMInfo>;
+    sig: Readonly<TimeSignatureInfo>;
+}
 
 export interface TimingConstructorArgs {
     /** \# of ticks per a quarter note. Defaults to 24. */
@@ -20,7 +30,7 @@ export interface TimingConstructorArgs {
 export class Timing {
     #res: bigint = 24n;
     /** \# of ticks per a quarter note. Defaults to 24. */
-    get resolution() { return this.#res; }
+    get res() { return this.#res; }
 
     #bpm_by_tick: ISortedMap<Tick, BPMInfo>;
     get bpm_by_tick() { return this.#bpm_by_tick; }
@@ -64,7 +74,7 @@ export class Timing {
         }
 
         return {
-            res: this.resolution,
+            res: this.#res,
             bpm, sig,
         };
     }
@@ -82,12 +92,10 @@ export class Timing {
     }
 
     /**
-     * Iterate through all measures in the specified range.
+     * Iterate through all measures in the specified (half-closed) range.
      * A partially-included measure also counts.
-     * 
-     * @param range The half-closed range [begin, end).
      */
-    *measures(range: TickRange): Generator<[Tick, MeasureInfo]> {
+    *measures([r_begin, r_end]: TickRange): Generator<[Tick, MeasureInfo]> {
         // TODO
     }
 

@@ -1,1 +1,1 @@
-export const TEST = 42;
+export * from "./timing/index.js";

@@ -32,6 +32,7 @@ export interface BPMInfo extends TickTimeInfo {
 
 export interface TimeSignatureInfo extends TickTimeInfo {
     sig: TimeSignature;
+    measure_idx: MeasureIdx;
 }
 
 /** Timing information for a specific tick. */
