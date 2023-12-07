@@ -1,26 +1,26 @@
 # RGC chart file format
 
-Current version: `0.1.0`
+Current version: `0.1.0-alpha-1`
 
 ## Introduction
 
-The RGC ("rhythm game chart") file format is a JSON-based format, aims to be able to represent charts from many different rhythm games.
+The RGC ("rhythm game chart") file format is a JSON-based chart format for rhythm games. The RGC format aims to be able to represent charts from many different rhythm games.
 
 The RGC format is inspired by [m4saka's KSON format](https://github.com/kshootmania/ksm-chart-format/blob/master/kson_format.md) for Sound Voltex charts and [the bmson format](https://bmson-spec.readthedocs.io/en/master/doc/index.html). The RGC format aims to be easily convertible to and from either formats. However, it's not a goal for the RGC format to be compatible to either formats.
 
 ### Goals
 
-* Easily convertible to/from various other rhythm game chart formats.
-* Easily usable to represent charts from many different kinds of rhythm games.
-* Enable quick prototyping of new rhythm games.
+* Able to support as many rhythm games as possible.
+* Easily convertible to/from as many rhythm game chart formats as possible.
+* Enables quick prototyping of new rhythm games.
 
 ### Non-goals
 
 * Aims to be "the standard format" for any particular rhythm game.
   * In particular, the RGC format does not try to replace either KSON or bmson.
-* Aims to be "the normalized form" of any particular chart.
-  * In other words, there might be multiple equally-valid representations of a chart.
-  * For several rhythm games, few recommendations are provided, however.
+* Specifies "the standard form" of any particular rhythm game.
+  * In other words, there can be multiple equally-valid representations of a particular chart.
+  * For several rhythm games, suggestions will be provided.
 
 ## Specification
 
@@ -35,15 +35,20 @@ An RGC chart file consists of four parts:
     * Metadata for the chart, such as information about musics and jacket images involved.
     * Metadata is independent of gameplay.
 3. Timing
+    * BPM and time signature changes.
+    * Scroll speed changes are *not* included.
 4. Notes (including auxillary data)
+    * Objects or events with temporal positions.
+    * Notes are grouped into lanes.
     * The RGC format does not distinguish between notes and auxillary data.
-      * For example, in Sound Voltex, camera angle changes and layer information are considered to be auxillary data, but as far as RGC chart format is concerned, they are also notes.
+      * For example, there are various kinds of auxillary data in Sound Voltex, including camera angle changes and layer information.
+      * However, as far as RGC chart format is concerned, those are represented as if they are just another kinds of notes.
 
 #### Lanes
 
 Lanes and lane groups are important concepts for the RGC format.
 
-Notes are represented as a collection of *lanes*. Each *lane* contain homogeneous collection of data, and different lanes do not interfere with each other.
+Notes are represented as a collection of *lanes*. Each *lane* contains homogeneous collection of data, and placements of notes in different lanes are independent.
 
 Types of notes' positions on one lane are identical, and \# of coordinates constituting notes' position on a lane is called the *dimension* of the lane.
 
@@ -89,13 +94,16 @@ An RGC chart file is a text file, which...
 * usually has an extension `.rgc` (other extensions are allowed),
 * MUST be UTF-8 encoded, SHOULD NOT include a BOM-mark,
 * SHOULD use LF (and not CR+LF) as line separator,
-* is a valid JSON file which...
-  * MUST have an object at the top level, and
-  * MAY NOT contain `null`.
+* MUST be a valid JSON file which...
+  * MUST have an object at the top level,
+  * MUST NOT contain any duplicated fields, and
+  * MAY NOT contain `null` unless specified otherwise.
 
-Unless otherwise specified (usually with `// custom fields allowed` comment in the pseudocode), fields of an object that are not specified in this document might not be preserved by an implementation.
+Unless otherwise specified, fields of an object that are not specified in this document MAY be ignored by an implementation.
 
-For any field specified in this document, any specified type SHOULD be obeyed (for example, strings MUST NOT be used for storing `i32`), except for `i64` or `u64`.
+When there is a `// custom fields allowed` in the pseudocode of a struct, any implementation SHOULD preserve any unknown fields present in the struct.
+
+For any field specified in this document, the specified type SHOULD be used to represent the field value in JSON (for example, strings MUST NOT be used to store an `i32` field), except for `i64` or `u64`.
 
 For any field with `i64` or `u64` type, the field's value is permitted to be stored as the base-10 `string` representation of the integer, and any reader MUST be able to handle these cases.
 
@@ -115,6 +123,7 @@ struct RGC {
 ```
 
 * `chart`: a map of lane groups, with the ID of each lane group as key.
+  * The ID of a lane group MAY be an empty string.
 
 ### Header
 
@@ -133,9 +142,10 @@ struct Header {
 * `version` (optional): semver for the file format.
 * `editor` (optional): identifier for the editor which created or last edited this file.
   * MUST NOT be used to alter behaviors of an editor; this data is purely informative.
-  * SHOULD consist of the ID of the editor (matching `[0-9a-z\-]+`), a space, and SEMVER of the editor.
+  * RECOMMENDED to consist of the ID of the editor (RECOMMENDED to match `[0-9a-z\-]+`), a space, and the semver of the editor.
 * `game` (optional): ID for the game (and the gamemode) this chart is for.
-  * If a gamemode is being specified, the ID for the game and the gamemode MUST be concatenated by a forward slash (`/`).
+  * RECOMMENDED to match `[0-9a-z\-]+(\/[0-9a-z\-]+)?`.
+  * If a gamemode is being specified, the ID for the game and the gamemode SHOULD be concatenated by a forward slash (`/`).
   * Examples: `sdvx`, `ddr/dp`
 
 ### Metadata
@@ -166,7 +176,7 @@ struct MetadataResource {
 
 A chart file's main purpose is to store timestamps of notes, relative to the beginning of an audio file.
 
-In an RGC chart, notes' timestamps are represented with ticks, integers representing time since the beginning of the chart.
+In an RGC chart, notes' timestamps are represented with ticks, which are integers representing time since the beginning of the chart.
 
 `Timing` specifies the relation between ticks and timestamps.
 
@@ -207,7 +217,7 @@ struct Timing {
     * If there is no time signature specified, the default value is [4, 4].
     * If there is one time signature with t≠0, it will be applied to the whole chart.
 
-For `bpm` and `sig`, ticks SHOULD be non-negative. It is OPTIONAL for implementations to disregard supports for negative ticks in `bpm` and `sig`.
+For `bpm` and `sig`, ticks SHOULD be non-negative. Implementations MAY omit supports for negative ticks in `bpm` and `sig`.
 
 Note: currently, supports for [anacruses](https://en.wikipedia.org/wiki/Anacrusis) is omitted, due to relative complexity of handling them. Use two time signatures, one for the anacrusis and one for regular measures, when an anacrusis is needed.
 
@@ -222,6 +232,7 @@ struct LaneGroup {
 
 * `dim` (optional): the dimension of notes in this lane group.
   * MUST be a non-negative integer.
+  * MUST be compatible with positions of all notes in the group.
   * An implementation MAY heuristically determine the value if `dim` is omitted.
 * `lane`: an array of lane(= array of note)s.
   * A lane MUST be sorted by `t` (ticks of notes), in ascending order.
@@ -244,20 +255,22 @@ struct Note {
 * `t`: start tick for this note, from the beginning of the chart.
   * In an RGC chart, all notes' ticks MUST be strictly non-negative.
 * `id` (optional): identifier for the note.
-  * SHOULD match `[0-9a-z\-]+`
-  * MAY be non-unique
+  * RECOMMENDED to match `[0-9a-z\-]+`.
+  * RECOMMENDED to be unique; implementations MAY reject charts containing notes with identical IDs.
 * `k` (optional): kind (type) ID for this note.
+  * RECOMMENDED to match `[0-9a-z\-]+`.
 * `l` (optional): length of this note, in ticks.
   * MUST be non-negative.
-  * Note that a note may span across multiple timing segments.
-* `v` (optional): position of this note (at the start).
-* `w` (optional): position of this note (at the end).
+* `v` (optional): spatial position of this note (at the start).
+* `w` (optional): spatial position of this note (at the end).
   * Defaults to `w` when not specified.
 * `p` (optional): arbitrary property of this note.
+  * MUST be a valid JSON object.
+  * SHOULD be preserved by an implementation.
 
 #### Concise Format
 
-`Note` MAY be represented by an array, an integer, or a string, where only `t`, `k`, `p`, `l`, `v`, and `w` fields are present.
+`Note` MAY be represented by an array, or a single `t` value, as specified below, where only `t`, `k`, `p`, `l`, `v`, and `w` fields are present.
 
 Array `Note` representation MUST NOT be used when `t` is not represented by a number.
 
@@ -271,11 +284,15 @@ t
 [k?, t, [v, w], l?, p?]
 ```
 
+If either `dim` is provided or heuristically determined, then an implementation MUST accept charts containing notes in concise formats.
+
+Otherwise, an implementation MAY reject such charts.
+
 #### Pos
 
-* MUST either be unspecified, or an empty array, for 0D.
-* MUST either be `i32`, `f64`, or a singleton array for 1D.
-* Array of coordinate values for 2+D.
+* MUST either be unspecified, or an empty array, for `dim`=0.
+* MUST either be `i32`, `f64`, or a singleton array, for `dim`=1.
+* Array of coordinate values for `dim`≥2.
   * Length MUST match the dimension of the lane.
 
 ## Example
@@ -302,6 +319,7 @@ This is the RGC chart for the "Calibration NOV" k-shoot mania chart.
   },
   "chart": {
     "bt": {
+      "dim": 0,
       "lane": [
         [0, 1, 2, 3, 16, 17, 18, 19, 32, 33, 34, 35, 48, 49, 50, 51],
         [4, 5, 6, 7, 20, 21, 22, 23, 36, 37, 38, 39, 52, 53, 54, 55],
