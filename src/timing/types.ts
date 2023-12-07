@@ -15,10 +15,12 @@ export interface MeasureInfo {
     /** Time signature for this measure. */
     sig: TimeSignature;
     /**
-     * Length of this measure, in ticks.
-     * This could be shorter than `time_sig[0] * beat_length` when this measure isn't a full measure.
-     **/
-    length: Tick;
+     * Full length of this measure, in ticks.
+     * Equal to `this.sig[0] * this.beat_length`.
+     */
+    full_length: Tick;
+    /** Beat length of this measure, in ticks. */
+    beat_length: Tick;
 }
 
 export interface TickTimeInfo {

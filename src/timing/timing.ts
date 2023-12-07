@@ -1,7 +1,7 @@
 import { BTree, type ISortedMap } from "../sorted-btree.js";
 
 import type { BPMInfo, MeasureIdx, MeasureInfo, Tick, TickRange, TimeSignature, TimeSignatureInfo, TimingInfo } from './types';
-import { createBpmInfos, createTimeSignatureInfos, getTimeFromBPMInfo } from "./util.js";
+import { createBpmInfos, createMeasureInfo, createTimeSignatureInfos, getTimeFromBPMInfo, updateMeasureInfoTick } from "./util.js";
 
 interface TimingIterators {
     bpm: Iterator<[Tick, Readonly<BPMInfo>]>;
@@ -41,8 +41,8 @@ export class Timing {
     #sig_by_tick: ISortedMap<Tick, TimeSignatureInfo>;
     get sig_by_tick() { return this.#sig_by_tick; }
 
-    #sig_by_time: ISortedMap<number, TimeSignatureInfo>;
-    get sig_by_time() { return this.#sig_by_time; }
+    #sig_by_measure_idx: ISortedMap<MeasureIdx, TimeSignatureInfo>;
+    get sig_by_measure_idx() { return this.#sig_by_measure_idx; }
 
     constructor({res=24n, bpm, sig}: TimingConstructorArgs) {
         this.#res = res = BigInt(res);
@@ -55,7 +55,7 @@ export class Timing {
         const time_sig_infos: TimeSignatureInfo[] = createTimeSignatureInfos(res, this.bpm_by_tick, sig ?? []);
 
         this.#sig_by_tick = new BTree<Tick, TimeSignatureInfo>(time_sig_infos.map((info) => [info.tick, info]));
-        this.#sig_by_time = new BTree<number, TimeSignatureInfo>(time_sig_infos.map((info) => [info.time, info]));
+        this.#sig_by_measure_idx = new BTree<MeasureIdx, TimeSignatureInfo>(time_sig_infos.map((info) => [info.measure_idx, info]));
     }
 
     toString(): string {
@@ -88,6 +88,10 @@ export class Timing {
      * @yields {[TimingInfo, T]} `it` but `Tick` replaced with the timing info
      */
     *withTimingInfo<T>(it: IterableIterator<[Tick, T]>): Generator<[Readonly<TimingInfo>, T]> {
+        let iterators: TimingIterators|null = null;
+        let curr_status: TimingStatus|null = null;
+        let next_status: Partial<TimingStatus> = {};
+
         // TODO
     }
 
@@ -99,12 +103,27 @@ export class Timing {
         // TODO
     }
 
-    getMeasureInfoByTick(tick: Tick): MeasureInfo {
+    getMeasureInfoByTick(tick: Tick): Readonly<MeasureInfo> {
         // TODO
     }
 
-    getMeasureInfoByIdx(measure_idx: MeasureIdx): MeasureInfo {
-        // TODO
+    getMeasureInfoByIdx(measure_idx: MeasureIdx): Readonly<MeasureInfo> {
+        let pair = this.#sig_by_measure_idx.nextLowerPair(measure_idx + 1n);
+        if(!pair) {
+            pair = this.#sig_by_measure_idx.entries().next().value;
+            if(!pair) throw new Error(`Invalid internal state (empty 'sig_by_measure_idx')`);
+        }
+
+        const time_sig_info = pair[1];
+
+        const measure_info: MeasureInfo = createMeasureInfo(
+            this.#res, time_sig_info.measure_idx, time_sig_info.tick, time_sig_info.sig,
+        );
+
+        measure_info.tick += measure_info.full_length * (measure_idx - measure_info.idx);
+        measure_info.idx = measure_idx;
+
+        return measure_info;
     }
 
     getTimeByTick(tick: Tick): number {
@@ -115,6 +134,6 @@ export class Timing {
             if(!pair) throw new Error(`Invalid internal state (empty 'bpm_by_tick')`);
         }
 
-        return getTimeFromBPMInfo(Number(this.#res), pair[1], tick);
+        return getTimeFromBPMInfo(this.#res, pair[1], tick);
     }
 }
