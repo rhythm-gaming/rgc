@@ -134,7 +134,7 @@ export class Timing {
     /**
      * Converts an iterator of `[Tick, T]` into `[TimingInfo, T]`.
      * 
-     * **WARNING**: since `TimingInfo` and `MeasureInfo` are reused for each iteration, be sure to copy them before reusing it.
+     * **WARNING**: `TimingInfo` and `MeasureInfo` are reused for each iteration. Be sure to copy them before reusing it.
      * 
      * @param it An iterator for pairs of `Tick` any any object.
      * @yields {[TimingInfo, T]} `it` but `Tick` replaced with the timing info
@@ -210,8 +210,34 @@ export class Timing {
     /**
      * Iterate through all measures in the specified (half-closed) range.
      * A partially-included measure also counts.
+     * 
+     * **WARNING**: `MeasureInfo` are reused for each iteration. Be sure to copy them before reusing it.
      */
-    *measures([r_begin, r_end]: TickRange): Generator<[Tick, MeasureInfo]> {
-        // TODO
+    *measures([r_begin, r_end]: TickRange): Generator<MeasureInfo> {
+        const it = this.#sig_by_tick.entries(this.#sig_by_tick.nextLowerKey(r_begin+1n) ?? 0n);
+
+        let curr_info: [Tick, TimeSignatureInfo] = it.next().value;
+        let next_info: [Tick, TimeSignatureInfo]|undefined = it.next().value;
+
+        while(next_info && next_info[0] < r_end) {
+            const measure_info = createMeasureInfo(this.#res, curr_info[1]);
+            updateMeasureInfoTick(measure_info, r_begin);
+
+            for(let idx = measure_info.idx; idx < next_info[1].measure_idx; ++idx) {
+                yield measure_info;
+                ++measure_info.idx;
+                measure_info.tick += measure_info.full_length;
+            }
+
+            curr_info = next_info;
+            next_info = it.next().value;
+        }
+
+        const measure_info = createMeasureInfo(this.#res, curr_info[1]);
+        while(measure_info.tick < r_end) {
+            yield measure_info;
+            ++measure_info.idx;
+            measure_info.tick += measure_info.full_length;
+        }
     }
 }
