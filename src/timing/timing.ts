@@ -9,8 +9,8 @@ interface TimingIterators {
 }
 
 interface TimingStatus {
-    bpm: Readonly<BPMInfo>;
-    sig: Readonly<TimeSignatureInfo>;
+    bpm: Readonly<[Tick, BPMInfo]>;
+    sig: Readonly<[Tick, TimeSignatureInfo]>;
 }
 
 export interface TimingConstructorArgs {
@@ -24,8 +24,8 @@ export interface TimingConstructorArgs {
 
 /**
  * Class for managing timing information of a chart.
- * 
- * **IMPORTANT: Chart offsets must be handled manually**, as all times are relative to the beginning of the chart (tick = 0).
+ *
+ * Offsets are not taken into account.
  */
 export class Timing {
     #res: bigint = 24n;
@@ -46,6 +46,9 @@ export class Timing {
 
     constructor({res=24n, bpm, sig}: TimingConstructorArgs) {
         this.#res = res = BigInt(res);
+        if(res <= 0n) {
+            throw new Error(`Invalid res=${res}`);
+        }
 
         const bpm_infos: BPMInfo[] = createBpmInfos(res, bpm ?? []);
 
@@ -78,54 +81,10 @@ export class Timing {
             bpm, sig,
         };
     }
-
+    
     /**
-     * Converts an iterator of `[Tick, T]` into `[TimingInfo, T]`.
-     * 
-     * **WARNING**: since `TimingInfo` is reused for each iteration, be sure to copy it before reusing it.
-     * 
-     * @param it An iterator for pairs of `Tick` any any object.
-     * @yields {[TimingInfo, T]} `it` but `Tick` replaced with the timing info
+     * Get time (in milliseconds) from ticks.
      */
-    *withTimingInfo<T>(it: IterableIterator<[Tick, T]>): Generator<[Readonly<TimingInfo>, T]> {
-        let iterators: TimingIterators|null = null;
-        let curr_status: TimingStatus|null = null;
-        let next_status: Partial<TimingStatus> = {};
-
-        // TODO
-    }
-
-    /**
-     * Iterate through all measures in the specified (half-closed) range.
-     * A partially-included measure also counts.
-     */
-    *measures([r_begin, r_end]: TickRange): Generator<[Tick, MeasureInfo]> {
-        // TODO
-    }
-
-    getMeasureInfoByTick(tick: Tick): Readonly<MeasureInfo> {
-        // TODO
-    }
-
-    getMeasureInfoByIdx(measure_idx: MeasureIdx): Readonly<MeasureInfo> {
-        let pair = this.#sig_by_measure_idx.nextLowerPair(measure_idx + 1n);
-        if(!pair) {
-            pair = this.#sig_by_measure_idx.entries().next().value;
-            if(!pair) throw new Error(`Invalid internal state (empty 'sig_by_measure_idx')`);
-        }
-
-        const time_sig_info = pair[1];
-
-        const measure_info: MeasureInfo = createMeasureInfo(
-            this.#res, time_sig_info.measure_idx, time_sig_info.tick, time_sig_info.sig,
-        );
-
-        measure_info.tick += measure_info.full_length * (measure_idx - measure_info.idx);
-        measure_info.idx = measure_idx;
-
-        return measure_info;
-    }
-
     getTimeByTick(tick: Tick): number {
         let pair = this.#bpm_by_tick.nextLowerPair(tick + 1n);
 
@@ -135,5 +94,124 @@ export class Timing {
         }
 
         return getTimeFromBPMInfo(this.#res, pair[1], tick);
+    }
+    
+    /**
+     * Get information about the measure containing the specied tick.
+     */
+    getMeasureInfoByTick(tick: Tick): Readonly<MeasureInfo> {
+        let pair = this.#sig_by_tick.nextLowerPair(tick + 1n);
+        if(!pair) {
+            pair = this.#sig_by_tick.entries().next().value;
+            if(!pair) throw new Error(`Invalid internal state (empty 'sig_by_tick')`);
+        }
+
+        const measure_info: MeasureInfo = createMeasureInfo(this.#res, pair[1]);
+        
+        updateMeasureInfoTick(measure_info, tick);
+        
+        return measure_info;
+    }
+
+    /**
+     * Get information about the measure specified with its index.
+     */
+    getMeasureInfoByIdx(measure_idx: MeasureIdx): Readonly<MeasureInfo> {
+        let pair = this.#sig_by_measure_idx.nextLowerPair(measure_idx + 1n);
+        if(!pair) {
+            pair = this.#sig_by_measure_idx.entries().next().value;
+            if(!pair) throw new Error(`Invalid internal state (empty 'sig_by_measure_idx')`);
+        }
+
+        const measure_info: MeasureInfo = createMeasureInfo(this.#res, pair[1]);
+
+        measure_info.tick += measure_info.full_length * (measure_idx - measure_info.idx);
+        measure_info.idx = measure_idx;
+
+        return measure_info;
+    }
+
+    /**
+     * Converts an iterator of `[Tick, T]` into `[TimingInfo, T]`.
+     * 
+     * **WARNING**: since `TimingInfo` and `MeasureInfo` are reused for each iteration, be sure to copy them before reusing it.
+     * 
+     * @param it An iterator for pairs of `Tick` any any object.
+     * @yields {[TimingInfo, T]} `it` but `Tick` replaced with the timing info
+     */
+    *withTimingInfo<T>(it: IterableIterator<[Tick, T]>): Generator<[Readonly<TimingInfo>, T]> {
+        let iterators: TimingIterators|null = null;
+        let curr_status: TimingStatus|null = null;
+        let next_status: Partial<TimingStatus> = {};
+
+        const timing_info: TimingInfo = {
+            tick: 0n, time: 0, bpm: 0,
+            measure: {
+                idx: 0n, tick: 0n, sig: [4, 4],
+                full_length: 0n, beat_length: 0n,
+            },
+        };
+
+        for(const [tick, data] of it) {
+            if(iterators === null) {
+                const prev_bpm_tick = this.#bpm_by_tick.nextLowerKey(tick+1n);
+                const prev_sig_tick = this.#sig_by_tick.nextLowerKey(tick+1n);
+
+                if(prev_bpm_tick == null || prev_sig_tick == null) {
+                    throw new Error(`Invalid initial state at tick=${tick}!`);
+                }
+
+                iterators = {
+                    bpm: this.#bpm_by_tick.entries(prev_bpm_tick),
+                    sig: this.#sig_by_tick.entries(prev_sig_tick),
+                };
+
+                curr_status = {
+                    bpm: iterators.bpm.next().value,
+                    sig: iterators.sig.next().value,
+                };
+
+                next_status = {
+                    bpm: iterators.bpm.next().value,
+                    sig: iterators.sig.next().value,
+                };
+
+                timing_info.bpm = curr_status.bpm[1].bpm;
+                timing_info.measure = createMeasureInfo(this.#res, curr_status.sig[1]);
+            }
+
+            if(iterators == null || curr_status == null || timing_info.measure == null) {
+                throw new Error(`BUG: Invalid internal state at tick=${tick}!`);
+            }
+
+            while(next_status.bpm && next_status.bpm[0] <= tick) {
+                curr_status.bpm = next_status.bpm;
+                next_status.bpm = iterators.bpm.next().value;
+
+                timing_info.bpm = curr_status.bpm[1].bpm;
+            }
+
+            while(next_status.sig && next_status.sig[0] <= tick) {
+                curr_status.sig = next_status.sig;
+                next_status.sig = iterators.sig.next().value;
+
+                timing_info.measure = createMeasureInfo(this.#res, curr_status.sig[1]);
+            }
+
+            updateMeasureInfoTick(timing_info.measure, tick);
+
+            timing_info.tick = tick;
+            timing_info.time = getTimeFromBPMInfo(this.#res, curr_status.bpm[1], tick);
+
+            yield [timing_info, data];
+        }
+    }
+
+    /**
+     * Iterate through all measures in the specified (half-closed) range.
+     * A partially-included measure also counts.
+     */
+    *measures([r_begin, r_end]: TickRange): Generator<[Tick, MeasureInfo]> {
+        // TODO
     }
 }

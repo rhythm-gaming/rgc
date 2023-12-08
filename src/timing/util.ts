@@ -1,7 +1,7 @@
 import type { ISortedMap } from "sorted-btree";
 import type { BPMInfo, MeasureIdx, MeasureInfo, Tick, TimeSignature, TimeSignatureInfo } from "./types";
 
-export function createMeasureInfo(res: Tick, idx: MeasureIdx, tick: Tick, sig: Readonly<TimeSignature>): MeasureInfo {
+export function createMeasureInfo(res: Tick, {tick, measure_idx, sig}: TimeSignatureInfo): MeasureInfo {
     const sig_num = BigInt(sig[0]);
     const sig_den = BigInt(sig[1]);
 
@@ -13,7 +13,7 @@ export function createMeasureInfo(res: Tick, idx: MeasureIdx, tick: Tick, sig: R
     beat_length /= sig_den;
 
     return {
-        idx, tick,
+        tick, idx: measure_idx,
         sig: [sig[0], sig[1]],
         full_length: beat_length * sig_num,
         beat_length,
@@ -86,8 +86,8 @@ export function createBpmInfos(res: Tick, sorted_bpm_list: Iterable<[tick: Tick,
             throw new Error(`Invalid BPM value (${bpm_value}) specified at tick=${bpm_tick}`);
         }
 
-        if(bpm_tick > 0n) {
-            last_bpm_info.time += getTimeFromBPMInfo(res, last_bpm_info, bpm_tick);
+        if(bpm_tick > 0n && last_bpm_info.bpm > 0) {
+            last_bpm_info.time = getTimeFromBPMInfo(res, last_bpm_info, bpm_tick);
             last_bpm_info.tick = bpm_tick;
         }
 
