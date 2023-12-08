@@ -1,6 +1,6 @@
 # RGC chart file format
 
-Current version: `0.1.0-alpha-1`
+Current version: `0.1.0-alpha-2`
 
 ## Introduction
 
@@ -201,21 +201,21 @@ struct Timing {
   * Defaults to 24 (96 ticks per a 4/4 measure) if not specified.
   * MUST be a positive integer.
   * `4*res` MUST be a multiple of the beat unit of all timing segments.
-* `bpm` (SHOULD be present): an array of BPM changes.
+* `bpm` (RECOMMENDED to be present): an array of BPM changes.
   * Here, 'BPM' means "\# of quarter notes per 60 seconds".
   * BPM changes are specified with a pair of ticks and corresponding BPM.
   * BPM changes MUST be sorted by ticks, in ascending order.
-  * There SHOULD be at least one BPM change, with t=0.
+  * It is RECOMMENDED to include at least BPM change, with t=0.
     * If there is no BPM change specified, the default value is 120.
     * If there is one BPM change with t≠0, it will be applied to the whole chart.
-* `sig` (SHOULD be present): an array of time signature changes.
+* `sig` (RECOMMENDED to be present): an array of time signature changes.
   * Each time signature `TimeSignature` is in the form of `[# of beat units per measure, beat unit]`.
     * It is RECOMMENDED for beat units to be powers of 2.
   * Time signatures MUST be sorted by `t`, in ascending order.
   * It's permitted for a time signature to not be aligned with a previous time signature's measures / beats.
-  * There SHOULD be at least one time signature, with t=0.
+  * It is RECOMMENDED to include at least one time signature.
+    * When there is at least one time signature, the first time signature's tick MUST be zero.
     * If there is no time signature specified, the default value is [4, 4].
-    * If there is one time signature with t≠0, it will be applied to the whole chart.
 
 For `bpm` and `sig`, ticks SHOULD be non-negative. Implementations MAY omit supports for negative ticks in `bpm` and `sig`.
 
