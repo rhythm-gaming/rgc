@@ -280,7 +280,7 @@ t
 [k?, t, l?, p?]
 
 // For 1+D notes
-[k?, t, v, l?, p?]
+[k?, t, [v], l?, p?]
 [k?, t, [v, w], l?, p?]
 ```
 
