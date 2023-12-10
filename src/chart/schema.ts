@@ -151,9 +151,27 @@ export const laneGroup = type({
 });
 export type LaneGroup = typeof laneGroup.infer;
 
+export const laneGroupMap = morph("unknown", (data: unknown): Record<string, LaneGroup> => {
+    if(typeof data !== 'object' || data === null) throw new Error("Invalid lane group map!");
+    const parsed: Record<string, LaneGroup> = {};
+
+    for(const [k, v] of Object.entries(data)) {
+        const {data, problems} = laneGroup(v);
+        problems?.throw();
+
+        if(!data) throw new Error(`Failed to parse LaneGroup '${k}'!`);
+        parsed[k] = data;
+    }
+
+    return parsed;
+});
+
 // Top-Level
 
 export const chart = type({
     "header?": header,
+    "meta?" : metadata,
+    "timing?": timing,
+    "chart?": laneGroupMap,
 });
 export type Chart = typeof chart.infer;
