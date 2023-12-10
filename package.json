@@ -37,6 +37,7 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {
+    "arktype": "1.0.28-alpha",
     "sorted-btree": "^1.8.1"
   }
 }
