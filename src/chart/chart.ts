@@ -3,6 +3,7 @@ import * as schema from "./schema.js";
 
 export class Chart {
     #timing: Timing;
+    get timing(): Readonly<Timing> { return this.#timing; }
 
     constructor(chart_data: schema.Chart) {
         this.#timing = new Timing(chart_data.timing ?? {});

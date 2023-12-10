@@ -57,8 +57,8 @@ export type TimeSignature = typeof timeSignature.infer;
 export const timing = type({
     "offset?": coercedInteger,
     "res?": "number",
-    "bpm?:": [[tick, morph(coercedNumber, check((n: number) => Number.isFinite(n) && n > 0, "BPM must be positive!"))], '[]'],
-    "sig?:": [[tick, timeSignature], '[]'],
+    "bpm?": [[tick, morph(coercedNumber, check((n: number) => Number.isFinite(n) && n > 0, "BPM must be positive!"))], '[]'],
+    "sig?": [[tick, timeSignature], '[]'],
 });
 export type Timing = typeof timing.infer;
 
