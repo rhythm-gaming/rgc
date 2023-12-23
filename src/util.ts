@@ -113,3 +113,6 @@ export function gcd<T extends number|bigint>(...values: T[]): T {
     }
     return x;
 }
+
+type TupleOf<T, N extends number, R extends unknown[] = []> = R['length'] extends N ? R : TupleOf<T, N, [T, ...R]>;
+export type FixedSizeArray<ElemType, Length extends number> = number extends Length ? ElemType[] : TupleOf<ElemType, Length>;

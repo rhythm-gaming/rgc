@@ -255,13 +255,17 @@ struct Note {
 * `t`: start tick for this note, from the beginning of the chart.
   * In an RGC chart, all notes' ticks MUST be strictly non-negative.
 * `id` (optional): identifier for the note.
+  * If present, it MUST NOT be an empty string.
   * RECOMMENDED to match `[0-9a-z\-]+`.
   * RECOMMENDED to be unique; implementations MAY reject charts containing notes with identical IDs.
 * `k` (optional): kind (type) ID for this note.
+  * If present, it MUST NOT be an empty string.
   * RECOMMENDED to match `[0-9a-z\-]+`.
 * `l` (optional): length of this note, in ticks.
   * MUST be non-negative.
 * `v` (optional): spatial position of this note (at the start).
+  * MAY be omitted when the dimension is zero.
+  * MUST be specified when the dimension is non-zero.
 * `w` (optional): spatial position of this note (at the end).
   * Defaults to `w` when not specified.
 * `p` (optional): arbitrary property of this note.

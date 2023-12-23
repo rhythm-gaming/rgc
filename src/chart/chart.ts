@@ -1,12 +1,22 @@
 import { Timing } from "../timing/index.js";
+import { LaneGroup } from "./lane.js";
 import * as schema from "./schema.js";
 
 export class Chart {
     #timing: Timing;
     get timing(): Readonly<Timing> { return this.#timing; }
 
+    #lane_groups = new Map<string, LaneGroup>();
+    get lane_groups(): Readonly<Map<string, LaneGroup>> { return this.#lane_groups; }
+
     constructor(chart_data: schema.Chart) {
         this.#timing = new Timing(chart_data.timing ?? {});
+
+        if(chart_data.chart) {
+            for(const k in chart_data.chart) {
+                this.#lane_groups.set(k, new LaneGroup(k, chart_data.chart[k]));
+            }
+        }
     }
 
     static parse(src: string): Chart {
