@@ -48,7 +48,7 @@ export type Metadata = typeof metadata.infer;
 
 // Timing
 
-export const tick = coercedBigInt;
+export const tick: typeof coercedBigInt = coercedBigInt;
 export type Tick = typeof tick.infer;
 
 export const timeSignature = morph(type([coercedInteger, coercedInteger]), check(([num, den]: [number, number]) => num > 0 && den > 0, "Invalid time signature!"));
