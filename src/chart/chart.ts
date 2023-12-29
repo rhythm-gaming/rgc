@@ -41,4 +41,19 @@ export class Chart {
         if(!data) throw new Error("Failed to parse the chart!");
         return new Chart(data);
     }
+
+    toJSON(): schema.Chart {
+        const lane_groups: Record<string, schema.LaneGroup> = {};
+
+        for(const [key, value] of this.#lane_groups.entries()) {
+            lane_groups[key] = value.toJSON();
+        }
+
+        return {
+            header: this.header,
+            meta: this.metadata,
+            timing: this.#timing.toJSON(),
+            chart: lane_groups,
+        };
+    }
 }

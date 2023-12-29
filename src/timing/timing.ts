@@ -65,7 +65,7 @@ export class Timing {
         return `[Timing with ${this.#bpm_by_tick.size} bpm and ${this.#sig_by_tick.size} time_sig]`;
     }
 
-    toJSON(): {res: bigint, bpm: Array<[Tick, number]>, sig: Array<[Tick, TimeSignature]>} {
+    toJSON(): {res: number, bpm: Array<[Tick, number]>, sig: Array<[Tick, TimeSignature]>} {
         const bpm: Array<[Tick, number]> = [];
         for(const info of this.#bpm_by_tick.values()) {
             bpm.push([info.tick, info.bpm]);
@@ -77,7 +77,7 @@ export class Timing {
         }
 
         return {
-            res: this.#res,
+            res: Number(this.#res),
             bpm, sig,
         };
     }

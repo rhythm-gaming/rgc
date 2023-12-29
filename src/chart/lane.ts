@@ -80,8 +80,23 @@ export class Lane<Dim extends number = number> {
         this.#dim = dim ?? (0 as Dim);
     }
 
-    toJSON() {
-        
+    toJSON(): schema.Note[] {
+        const notes: schema.Note[] = [];
+
+        for(const chord of this.#notes.values()) {
+            for(const note of chord) {
+                notes.push({
+                    t: note.tick,
+                    l: note.length,
+                    id: note.id,
+                    k: note.kind,
+                    v: note.pos,
+                    w: note.pos_end,
+                });
+            }
+        }
+
+        return notes;
     }
 }
 
@@ -120,5 +135,12 @@ export class LaneGroup implements ILaneGroup {
         }
 
         this.dim = dim ?? 0;
+    }
+
+    toJSON(): schema.LaneGroup {
+        return {
+            dim: this.dim,
+            lane: this.lanes.map((lane: Lane) => lane.toJSON()),
+        };
     }
 }

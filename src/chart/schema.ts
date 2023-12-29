@@ -174,4 +174,5 @@ export const chart = type({
     "timing?": timing,
     "chart?": laneGroupMap,
 });
+
 export type Chart = typeof chart.infer;
