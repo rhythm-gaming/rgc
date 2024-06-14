@@ -1,6 +1,6 @@
 # RGC chart file format
 
-Current version: `0.1.0-alpha-2`
+Current version: `0.1.0-alpha-3`
 
 ## Introduction
 
@@ -93,7 +93,6 @@ An RGC chart file is a text file, which...
 
 * usually has an extension `.rgc` (other extensions are allowed),
 * MUST be UTF-8 encoded, SHOULD NOT include a BOM-mark,
-* SHOULD use LF (and not CR+LF) as line separator,
 * MUST be a valid JSON file which...
   * MUST have an object at the top level,
   * MUST NOT contain any duplicated fields, and
@@ -106,6 +105,8 @@ When there is a `// custom fields allowed` in the pseudocode of a struct, any im
 For any field specified in this document, the specified type SHOULD be used to represent the field value in JSON (for example, strings MUST NOT be used to store an `i32` field), except for `i64` or `u64`.
 
 For any field with `i64` or `u64` type, the field's value is permitted to be stored as the base-10 `string` representation of the integer, and any reader MUST be able to handle these cases.
+
+Although not recommended, implementations MAY assume that absolute values of integer values are less than 2^53 (i.e. not greater than ECMAScript's `Number.MAX_SAFE_INTEGER`).
 
 The order of keys in an object MAY be arbitrary.
 
@@ -139,7 +140,7 @@ struct Header {
 }
 ```
 
-* `version` (optional): semver for the file format.
+* `version` (optional): [semver](https://semver.org/) for the file format.
 * `editor` (optional): identifier for the editor which created or last edited this file.
   * MUST NOT be used to alter behaviors of an editor; this data is purely informative.
   * RECOMMENDED to consist of the ID of the editor (RECOMMENDED to match `[0-9a-z\-]+`), a space, and the semver of the editor.
