@@ -187,7 +187,7 @@ In an RGC chart, notes' timestamps are represented with ticks, which are integer
 ```Rust
 type Tick = u64;
 
-type IimeSignature = [u16, u16];
+type TimeSignature = [u16, u16];
 
 struct Timing {
   offset: i32?,
