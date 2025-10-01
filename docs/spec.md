@@ -1,26 +1,26 @@
 # RGC chart file format
 
-Current version: `0.1.0-alpha-3`
+Current version: `0.1.0-alpha-4`
 
 ## Introduction
 
 The RGC ("rhythm game chart") file format is a JSON-based chart format for rhythm games. The RGC format aims to be able to represent charts from many different rhythm games.
 
-The RGC format is inspired by [m4saka's KSON format](https://github.com/kshootmania/ksm-chart-format/blob/master/kson_format.md) for Sound Voltex charts and [the bmson format](https://bmson-spec.readthedocs.io/en/master/doc/index.html). The RGC format aims to be easily convertible to and from either formats. However, it's not a goal for the RGC format to be compatible to either formats.
+The RGC format is inspired by [m4saka's KSON format](https://github.com/kshootmania/ksm-chart-format/blob/master/kson_format.md) for Sound Voltex charts and [the bmson format](https://bmson-spec.readthedocs.io/en/master/doc/index.html). The RGC format aims to be easily convertible to and from either formats.
 
 ### Goals
 
-* Able to support as many rhythm games as possible.
-* Easily convertible to/from as many rhythm game chart formats as possible.
-* Enables quick prototyping of new rhythm games.
+- Able to support as many rhythm games as possible.
+- Easily convertible to/from as many rhythm game chart formats as possible.
+- Enables quick prototyping of new rhythm games.
 
 ### Non-goals
 
-* Aims to be "the standard format" for any particular rhythm game.
-  * In particular, the RGC format does not try to replace either KSON or bmson.
-* Specifies "the standard form" of any particular rhythm game.
-  * In other words, there can be multiple equally-valid representations of a particular chart.
-  * For several rhythm games, suggestions will be provided.
+- Aims to be "the standard format" for any particular rhythm game.
+  - In particular, the RGC format does not try to replace either KSON or bmson.
+- Specifies "the standard RGC representation" for any specific rhythm game.
+  - In other words, there can be multiple equally-valid representations for a particular chart from a rhythm game.
+  - Suggestions will be provided for several rhythm games, though.
 
 ## Specification
 
@@ -29,30 +29,33 @@ The RGC format is inspired by [m4saka's KSON format](https://github.com/kshootma
 An RGC chart file consists of four parts:
 
 1. Header
-    * Metadata for the RGC chart file.
-    * Headers are independent of chart contents.
+    - Metadata for the RGC chart file.
+    - Headers are independent of chart contents.
 2. Metadata
-    * Metadata for the chart, such as information about musics and jacket images involved.
-    * Metadata is independent of gameplay.
+    - Metadata for the chart, such as information about musics and jacket images involved.
+    - Metadata is independent of gameplay.
 3. Timing
-    * BPM and time signature changes.
-    * Scroll speed changes are *not* included.
+    - BPM and time signature changes.
+    - Scroll speed changes are *not* included.
 4. Notes (including auxillary data)
-    * Objects or events with temporal positions.
-    * Notes are grouped into lanes.
-    * The RGC format does not distinguish between notes and auxillary data.
-      * For example, there are various kinds of auxillary data in Sound Voltex, including camera angle changes and layer information.
-      * However, as far as RGC chart format is concerned, those are represented as if they are just another kinds of notes.
+    - Notes are grouped by *lanes*.
+
+#### Notes
+
+As far as the RGC chart format is concerned, "notes" include *auxillary data*, which does not directly participate in defining entities that players are required to hit.
+For example, auxillary data for Sound Voltex includes camera and track angle changes.
+
+A note have a property called **position**, which is a tuple of zero or more values. \# of values to specify a position is called the **dimension** of the note.
+
+> [!NOTE]
+> RGC by itself does not restrict on whether multiple notes on the same lane may share the same position. In other words, notes may overlap.
 
 #### Lanes
 
-Lanes and lane groups are important concepts for the RGC format.
-
-Notes are represented as a collection of *lanes*. Each *lane* contains homogeneous collection of data, and placements of notes in different lanes are independent.
-
-Types of notes' positions on one lane are identical, and \# of coordinates constituting notes' position on a lane is called the *dimension* of the lane.
+Notes are grouped by lanes. Each *lane* contains homogeneous collection of data, and placements of notes in different lanes are independent.
 
 There can be many lanes with homogeneous properties. A collection of lanes with homogeneous properties is called a *lane group*.
+Every note in a lane group must share the same dimension.
 
 Here are a few examples of lane groups.
 
@@ -65,7 +68,7 @@ Here are a few examples of lane groups.
     * 7 lanes of dimension 0 (buttons)
   * Alternative:
     * 8 lanes of dimension 0 (scratch + buttons)
-    * Scratch notes and button notes are not homogeneous, so this is not recommended.
+    * Scratch notes and button notes are not conceptually homogeneous, so this is not recommended.
 * **Beatmania IIDX DP**
   * Recommended lane groups:
     * 1 lane of dimension 0 (left scratch)
