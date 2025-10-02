@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { ArkErrors } from 'arktype';
 
-import { U8, U16, I32, U64, F64, Tick } from "./scalar.js";
+import { U8, U16, I32, U64, F64, Tick, NumberTick, Property } from "./scalar.js";
 
 function testPlainIntType(IntType: (typeof U8|typeof U16|typeof I32), accept_values: number[], reject_values: number[]) {
     it("should accept valid int values", function() {
@@ -40,7 +40,7 @@ function testPlainIntType(IntType: (typeof U8|typeof U16|typeof I32), accept_val
     });
 }
 
-function testUint64Type(Uint64: typeof U64) {
+function testUint64Type(Uint64: (typeof U64)|(typeof NumberTick), omit_string: boolean = false) {
     it("should accept valid uint64 values", function() {
         for(const v of [
             0,
@@ -55,7 +55,14 @@ function testUint64Type(Uint64: typeof U64) {
             `${Number.MAX_SAFE_INTEGER}`,
             `${BigInt(Number.MAX_SAFE_INTEGER) + 1n}`,
         ]) {
+            if(omit_string && typeof v === 'string') {
+                assert.instanceOf(Uint64(v), ArkErrors);
+                assert.throws(() => Uint64.assert(v));
+                continue;
+            }
+
             const x = Uint64(v);
+
             if(x instanceof ArkErrors) {
                 assert.fail(x.summary);
             }
@@ -164,4 +171,27 @@ describe("F64", function() {
 
 describe("Tick", function() {
     testUint64Type(Tick);
+});
+
+describe("NumberTick", function() {
+    testUint64Type(NumberTick, true);
+});
+
+describe("Property", function() {
+    it("should accept records", function() {
+        const v = {hello: "world", foo: 42, bar: {}};
+        assert.deepStrictEqual(Property(v), v);
+    });
+
+    it("should reject non-records", function() {
+        for(const v of [
+            null, undefined,
+            0, 1, -1, 0n, 1n, -1n, 0.5,
+            "hello", true, false,
+            [], [1, 2, 3],
+        ]) {
+            assert.instanceOf(Property(v), ArkErrors);
+            assert.throws(() => Property.assert(v));
+        }
+    });
 });
