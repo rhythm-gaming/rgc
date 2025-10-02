@@ -22,6 +22,7 @@ export const Chart = type({
 export type Chart = typeof Chart.infer;
 
 export function parseChart(data: unknown): Chart {
+    if(typeof data === 'string') data = JSON.parse(data);
     const result = Chart(data);
 
     if(result instanceof ArkErrors) {

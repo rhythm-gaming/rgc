@@ -1,8 +1,6 @@
-import { type, Type } from 'arktype';
+import { type, match, ArkErrors, ArkError } from 'arktype';
 
-import { U8, I32, F64, Tick, Property } from './scalar.js';
-
-const Coord = I32.or(F64);
+import { U8, Coord, Tick, NumberTick, Property } from './scalar.js';
 
 export const Pos = Coord.array().or(Coord.pipe((v): [number] => [v])).pipe((v): number[] => v);
 export type Pos = typeof Pos.infer;
@@ -33,14 +31,14 @@ const PosTuple = type([Pos]).or(type([Pos, Pos])).narrow((v, ctx) => {
     return true;
 });
 
-type SimpleNoteArrayBaseType = []|[typeof PosTuple];
-type SimpleNoteArrayPrefixType = [typeof Tick, ...SimpleNoteArrayBaseType]|['string', typeof Tick, ...SimpleNoteArrayBaseType];
-
-function SimpleNoteWithPrefixOf(prefix_types: SimpleNoteArrayPrefixType) {
-    const WithoutLength = type([...prefix_types, Property.optional()]);
-    const WithLength = type([...prefix_types, Tick, Property.optional()]);
-
-    return WithoutLength.or(WithLength).pipe((v, ctx) => {
+const SimpleNoteScalar = Tick.pipe((v) => ({t: v}));
+const SimpleNoteArray = match({})
+    .case(type.or("string", PosTuple, NumberTick), (v) => v)
+    .case(Property, (v) => v)
+    .default("reject")
+    .array().atLeastLength(1).atMostLength(5)
+    .narrow((v): v is Array<Exclude<(typeof v)[number], ReadonlyArray<ArkError>>> => v.every((x) => !(x instanceof ArkErrors)))
+    .pipe((v, ctx) => {
         const w = [...v];
 
         let kind: string|null = null;
@@ -53,11 +51,14 @@ function SimpleNoteWithPrefixOf(prefix_types: SimpleNoteArrayPrefixType) {
             return ctx.error("unexpected parsed SimpleNote length");
         }
 
-        if(typeof w[0] !== 'bigint') {
-            kind = w.shift() as string;
+        switch(typeof w[0]) {
+            case 'bigint': break;
+            case 'string': kind = w.shift() as string; break;
+            default: return ctx.error(`unexpected first SimpleNote type: ${typeof w[0]}`);
         }
 
         do {
+            if(typeof w[0] !== 'bigint') return ctx.error(`unexpected SimpleNote tick type: ${typeof w[0]}`);
             tick = w.shift() as Tick;
             if(w.length === 0) break;
             
@@ -71,8 +72,14 @@ function SimpleNoteWithPrefixOf(prefix_types: SimpleNoteArrayPrefixType) {
                 if(w.length === 0) break;
             }
 
-            if(w.length !== 1) return ctx.error("unexpected parsed SimpleNote contents");
-            props = w[0] as Property;
+            if(w.length !== 1) return ctx.error("unexpected excessive SimpleNote contents");
+
+            const last_value = w[0] as (typeof v[0]);
+            if(typeof last_value !== 'object') return ctx.error(`unexpected last SimpleNote type: ${typeof last_value}`);
+            if(Array.isArray(last_value)) return ctx.error(`unexpected last SimpleNote type: array`);
+
+            props = last_value;
+        // eslint-disable-next-line no-constant-condition
         } while(false);
 
         const ret_obj: FullNote = {
@@ -98,37 +105,35 @@ function SimpleNoteWithPrefixOf(prefix_types: SimpleNoteArrayPrefixType) {
         }
 
         return ret_obj;
-    });
-}
-
-function SimpleNoteOf(base_types: SimpleNoteArrayBaseType) {
-    return SimpleNoteWithPrefixOf([Tick, ...base_types]).or(SimpleNoteWithPrefixOf(['string', Tick, ...base_types]));
-}
-
-const SimpleNote0DScalar = Tick.pipe((v) => ({t: v}));
-const SimpleNote0DArray = SimpleNoteOf([]);
-const SimpleNote0D = SimpleNote0DScalar.or(SimpleNote0DArray);
-
-const SimpleNoteND = SimpleNoteOf([PosTuple]);
-const SimpleNote = SimpleNote0D.or(SimpleNoteND);
-
-export const Note = FullNote.or(SimpleNote).narrow((v: FullNote, ctx): v is FullNote => {
-    if(v.v) {
-        if(v.w && v.v.length !== v.w.length) {
-            return ctx.reject({
-                expected: `w length same as v: ${v.v.length}`,
-                path: ['w'],
-            });
-        }
-    } else if(v.w) {
-        return ctx.reject({
-            expected: "w must not exist as v does not",
-            path: ['w'],
-        })
-    }
-
-    return true;
 });
+
+const SimpleNote = SimpleNoteScalar.or(SimpleNoteArray);
+
+/*
+export const Note = match({})
+    .case(FullNote, (v) => v)
+    .case(SimpleNote, (v) => v)
+    .default("reject")
+    .narrow((v): v is FullNote => !(v instanceof ArkErrors))
+    .narrow((v, ctx): v is FullNote => {
+        if(v.v) {
+            if(v.w && v.v.length !== v.w.length) {
+                return ctx.reject({
+                    expected: `w length same as v: ${v.v.length}`,
+                    path: ['w'],
+                });
+            }
+        } else if(v.w) {
+            return ctx.reject({
+                expected: "w must not exist as v does not",
+                path: ['w'],
+            })
+        }
+
+        return true;
+});
+*/
+export const Note = SimpleNote;
 export type Note = typeof Note.infer;
 
 export const LaneGroup = type({

@@ -26,9 +26,13 @@ export type U16 = typeof U16.infer;
 export const I32 = IntLike(-2147483648, 2147483647);
 export type I32 = typeof I32.infer;
 
-export const U64 = type("bigint | number.safe >= 0 | string.numeric").pipe((v, ctx) => {
+export const U64 = type("bigint | (number.safe & number.integer) >= 0 | string.numeric").pipe((v, ctx) => {
     if(typeof v === 'string') {
-        v = BigInt(v);
+        try {
+            v = BigInt(v);
+        } catch(e) {
+            return ctx.error(e as Error);
+        }
     } else if(typeof v === 'number') {
         if(!Number.isSafeInteger(v)) {
             return ctx.error("Value out of range!");
@@ -52,5 +56,26 @@ export type F64 = typeof F64.infer;
 export const Tick = U64;
 export type Tick = typeof Tick.infer;
 
-export const Property = type("object");
+/**
+ * `Tick`, but disallows string representations of integers.
+ */
+export const NumberTick = type("bigint | (number.safe & number.integer >= 0)").pipe((v, ctx) => {
+    if(typeof v === 'number') {
+        if(!Number.isSafeInteger(v)) {
+            return ctx.error("Value out of range!");
+        }
+        v = BigInt(v);
+    }
+    
+    if(v < 0) {
+        return ctx.error("Value out of range!");
+    }
+
+    return v;
+});
+
+export const Coord = F64;
+export type Coord = typeof Coord.infer;
+
+export const Property = type({"[string]": "unknown"});
 export type Property = typeof Property.infer;
