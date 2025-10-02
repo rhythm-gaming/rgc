@@ -1,11 +1,15 @@
 {
     "compilerOptions": {
-        "target": "ES2022",
+        "target": "ES2024",
         "module": "ESNext",
         "declaration": true,
         "outDir": "dist",
         "sourceMap": false,
         "strict": true,
-        "moduleResolution": "node"
-    }
+        "skipLibCheck": true,
+        "exactOptionalPropertyTypes": true,
+        "moduleResolution": "Node",
+        "isolatedModules": true,
+    },
+    "include": ["src/**/*.ts"]
 }

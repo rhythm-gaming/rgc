@@ -1,7 +1,7 @@
 {
   "name": "@rhythm-gaming/rgc",
-  "version": "0.1.0",
-  "description": ".RGC rhythm game chart format and TS library, for generic chart processing.",
+  "version": "0.2.0",
+  "description": "Schema for RGC chart format, a JSON-based format for rhythm games.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,7 @@
     "build": "npx tsc",
     "watch": "npx tsc --watch",
     "lint": "npx eslint src/",
-    "test": "npx mocha"
+    "test": "npx mocha test/chart.js"
   },
   "repository": {
     "type": "git",
@@ -29,15 +29,16 @@
   },
   "homepage": "https://github.com/rhythm-gaming/rgc",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.16.0",
-    "@typescript-eslint/parser": "^6.16.0",
-    "chai": "^4.3.10",
-    "eslint": "^8.56.0",
-    "mocha": "^10.2.0",
-    "typescript": "^5.3.3"
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.36.0",
+    "@typescript-eslint/eslint-plugin": "^8.45.0",
+    "@typescript-eslint/parser": "^8.45.0",
+    "chai": "^6.2.0",
+    "eslint": "^9.36.0",
+    "mocha": "^11.7.3",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
-    "arktype": "1.0.28-alpha",
-    "sorted-btree": "^1.8.1"
+    "arktype": "2.1.22"
   }
 }

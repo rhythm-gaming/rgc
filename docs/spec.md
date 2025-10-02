@@ -1,6 +1,6 @@
 # RGC chart file format
 
-Current version: `0.1.0-alpha-4`
+Current version: `0.2.0-alpha-1`
 
 ## Introduction
 
