@@ -33,7 +33,7 @@ function testPlainIntType(IntType: (typeof U8|typeof U16|typeof I32), accept_val
         }
     });
     it("should reject non-number values", function() {
-        for(const v of ["hello", {}, [], true, false, null, undefined]) {
+        for(const v of ["", "hello", {}, [], true, false, null, undefined]) {
             assert.instanceOf(IntType(v), ArkErrors);
             assert.throws(() => IntType.assert(v));
         }
@@ -81,14 +81,12 @@ function testUint64Type(Uint64: (typeof U64)|(typeof NumberTick), omit_string: b
     
     it("should reject non-integer or non-finite values", function() {
         for(const v of [
-            0.5,
-            42.1,
+            0.5, 42.1,
             Number.MAX_SAFE_INTEGER + 1,
             Number.POSITIVE_INFINITY,
             Number.NEGATIVE_INFINITY,
             Number.NaN,
-            "0.5",
-            "42.1",
+            "", "0.5", "42.1",
         ]) {
             assert.instanceOf(Uint64(v), ArkErrors);
             assert.throws(() => Uint64.assert(v));
@@ -162,7 +160,7 @@ describe("F64", function() {
     });
     
     it("should reject non-number values", function() {
-        for(const v of ["hello", {}, [], true, false, null, undefined, 123n]) {
+        for(const v of ["", "hello", {}, [], true, false, null, undefined, 123n]) {
             assert.instanceOf(F64(v), ArkErrors);
             assert.throws(() => F64.assert(v));
         }
@@ -187,7 +185,7 @@ describe("Property", function() {
         for(const v of [
             null, undefined,
             0, 1, -1, 0n, 1n, -1n, 0.5,
-            "hello", true, false,
+            "", "hello", true, false,
             [], [1, 2, 3],
         ]) {
             assert.instanceOf(Property(v), ArkErrors);
