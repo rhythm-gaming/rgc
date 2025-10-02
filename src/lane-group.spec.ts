@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { ArkErrors } from 'arktype';
 
-import { Pos } from "./lane-group.js";
+import { Pos, FullNote } from "./lane-group.js";
 
 describe("Pos", function() {
     it("should accept a number", function() {
@@ -26,6 +26,27 @@ describe("Pos", function() {
                 assert.instanceOf(Pos(w), ArkErrors);
                 assert.throws(() => Pos.assert(w));
             }
+        }
+    });
+});
+
+describe("FullNote", function() {
+    it("should accept simple values", function() {
+        for(const v of [
+            {t: 123n},
+            {t: 123n, id: "foo", k: "bar", l: 456n, v: [], w: [], p: {}}
+        ]) {
+            assert.deepStrictEqual(FullNote(v), v);
+        }
+    });
+
+    it("should not accept invalid values", function() {
+        for(const v of [
+            null, undefined, true, false, "foo", 123,
+            [], {}, () => {}, Symbol('foo'),
+        ]) {
+            assert.instanceOf(FullNote(v), ArkErrors);
+            assert.throws(() => FullNote.assert(v));
         }
     });
 });
