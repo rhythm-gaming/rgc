@@ -77,5 +77,9 @@ export const NumberTick = type("bigint | (number.safe & number.integer >= 0)").p
 export const Coord = F64;
 export type Coord = typeof Coord.infer;
 
-export const Property = type({"[string]": "unknown"}).narrow((v): v is Record<string, unknown> => (typeof v === 'object') && !Array.isArray(v));
+export function isRecord(v: unknown): v is Record<string, unknown> {
+    return v != null && (typeof v === 'object') && !Array.isArray(v);
+}
+
+export const Property = type({"[string]": "unknown"}).narrow(isRecord);
 export type Property = typeof Property.infer;
