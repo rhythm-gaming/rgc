@@ -5,25 +5,34 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "!dist/**/*.spec.*",
+    "!**/*.tsbuildinfo",
+    "!dist/**/test-util.js",
+    "!dist/**/test-util.d.ts"
+  ],
   "scripts": {
-    "clean": "rm -r dist/",
+    "clean": "npx rimraf dist",
     "prepare": "npm run build",
     "build": "npx tsc",
     "watch": "npx tsc --watch",
     "lint": "npx eslint src/",
-    "test": "npx mocha test/chart.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rhythm-gaming/rgc.git"
+    "pretest": "pnpm build",
+    "test": "npx mocha \"dist/**/*.spec.js\""
   },
   "keywords": [
     "rgc",
+    "rhythm game",
     "chart",
     "beatmap"
   ],
   "author": "Jimin Park",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rhythm-gaming/rgc.git"
+  },
   "bugs": {
     "url": "https://github.com/rhythm-gaming/rgc/issues"
   },
@@ -31,11 +40,15 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.36.0",
+    "@types/chai": "^5.2.2",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.6.2",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
     "chai": "^6.2.0",
     "eslint": "^9.36.0",
-    "mocha": "^11.7.3",
+    "mocha": "^11.7.4",
+    "rimraf": "^6.0.1",
     "typescript": "^5.9.3"
   },
   "dependencies": {

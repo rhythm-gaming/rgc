@@ -10,6 +10,7 @@
         "exactOptionalPropertyTypes": true,
         "moduleResolution": "Node",
         "isolatedModules": true,
+        "incremental": true
     },
     "include": ["src/**/*.ts"]
 }
