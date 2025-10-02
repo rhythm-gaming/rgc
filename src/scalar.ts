@@ -1,12 +1,29 @@
 import { type } from 'arktype';
 
-export const U8 = type("0 <= number.integer <= 255");
+function IntLike(min_value: number, max_value: number) {
+    return type(`${min_value} <= number.integer <= ${max_value}`).or(
+        // Gracefully accept strings and bigints.
+        type("string.integer.parse|bigint").pipe((v, ctx) => {
+            if(typeof v === 'bigint') {
+                v = Number(v);
+            }
+
+            if(!Number.isSafeInteger(v) || !(min_value <= v && v <= max_value)) {
+                return ctx.error(`value out of range (${min_value} .. ${max_value})`);
+            }
+
+            return v;
+        })
+    );
+}
+
+export const U8 = IntLike(0, 255);
 export type U8 = typeof U8.infer;
 
-export const U16 = type("0 <= number.integer <= 65535");
+export const U16 = IntLike(0, 65535);
 export type U16 = typeof U16.infer;
 
-export const I32 = type("-2147483648 <= number.integer <= 21483647");
+export const I32 = IntLike(-2147483648, 2147483647);
 export type I32 = typeof I32.infer;
 
 export const U64 = type("bigint | number.safe >= 0 | string.numeric").pipe((v, ctx) => {

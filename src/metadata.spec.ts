@@ -1,4 +1,6 @@
 import { assert } from 'chai';
+import { ArkErrors } from 'arktype';
+
 import { Metadata } from "./metadata.js";
 
 describe("Metadata", function() {
@@ -11,4 +13,13 @@ describe("Metadata", function() {
             assert.deepStrictEqual(Metadata(obj), obj);
         }
     });
+    it("should reject title with incorrect type", function() {
+        for(const title of [
+            true, false, null, (void 0),
+            1234, 5678n, {}, [], () => {},
+            Symbol('foo'),
+        ]) {
+            assert.instanceOf(Metadata({title}), ArkErrors);
+        }
+    })
 });
