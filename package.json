@@ -1,6 +1,6 @@
 {
   "name": "@rhythm-gaming/rgc",
-  "version": "0.2.0",
+  "version": "0.2.0-beta",
   "description": "Schema for RGC chart format, a JSON-based format for rhythm games.",
   "type": "module",
   "main": "dist/index.js",

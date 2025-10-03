@@ -135,11 +135,26 @@ const SimpleNoteArray = match({})
 
 const ObjectNote = type("Array|object").pipe((v) => Array.isArray(v) ? SimpleNoteArray(v) : FullNote(v));
 
-export const Note = SimpleNoteScalar.or(ObjectNote);
+// To simply deducted `Note` type to `FullNote`, add a trivial pipe at the end.
+export const Note = SimpleNoteScalar.or(ObjectNote).pipe((v): FullNote => v);
 export type Note = typeof Note.infer;
+
+export const NoteLane = Note.array().pipe((v): FullNote[] => {
+    v.sort((x, y) => x.t < y.t ? -1 : x.t > y.t ? 1 : 0);
+    return v;
+});
+
+export type NoteLane<NoteType=Note> = NoteType[];
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _type_NoteLane: NoteLane = NoteLane.infer;
 
 export const LaneGroup = type({
     "dim?": U8,
-    "lane": Note.array().array(),
+    "lane": NoteLane.array(),
 }).onUndeclaredKey('reject');
-export type LaneGroup = typeof LaneGroup.infer;
+
+export type LaneGroup<NoteType=Note> = {dim?: number, lane: NoteLane<NoteType>[]};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _type_LaneGroup: LaneGroup = LaneGroup.infer;
