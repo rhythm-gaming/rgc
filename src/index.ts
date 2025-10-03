@@ -20,7 +20,7 @@ export const Chart = type({
     },
 }).onUndeclaredKey('ignore');
 
-export type Chart<NoteType=Note> = Omit<typeof Chart.infer, 'chart'> & {
+export type Chart<NoteType extends Note = Note> = Omit<typeof Chart.infer, 'chart'> & {
     chart: Record<string, LaneGroup<NoteType>>,
 };
 

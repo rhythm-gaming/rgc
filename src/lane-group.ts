@@ -144,7 +144,7 @@ export const NoteLane = Note.array().pipe((v): FullNote[] => {
     return v;
 });
 
-export type NoteLane<NoteType=Note> = NoteType[];
+export type NoteLane<NoteType extends Note = Note> = NoteType[];
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _type_NoteLane: NoteLane = NoteLane.infer;
@@ -154,7 +154,7 @@ export const LaneGroup = type({
     "lane": NoteLane.array(),
 }).onUndeclaredKey('reject');
 
-export type LaneGroup<NoteType=Note> = {dim?: number, lane: NoteLane<NoteType>[]};
+export type LaneGroup<NoteType extends Note = Note> = {dim?: number, lane: NoteLane<NoteType>[]};
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _type_LaneGroup: LaneGroup = LaneGroup.infer;
