@@ -133,33 +133,9 @@ const SimpleNoteArray = match({})
         return ret_obj;
 });
 
-const SimpleNote = SimpleNoteScalar.or(SimpleNoteArray);
+const ObjectNote = type("Array|object").pipe((v) => Array.isArray(v) ? SimpleNoteArray(v) : FullNote(v));
 
-/*
-export const Note = match({})
-    .case(FullNote, (v) => v)
-    .case(SimpleNote, (v) => v)
-    .default("reject")
-    .narrow((v): v is FullNote => !(v instanceof ArkErrors))
-    .narrow((v, ctx): v is FullNote => {
-        if(v.v) {
-            if(v.w && v.v.length !== v.w.length) {
-                return ctx.reject({
-                    expected: `w length same as v: ${v.v.length}`,
-                    path: ['w'],
-                });
-            }
-        } else if(v.w) {
-            return ctx.reject({
-                expected: "w must not exist as v does not",
-                path: ['w'],
-            })
-        }
-
-        return true;
-});
-*/
-export const Note = SimpleNote;
+export const Note = SimpleNoteScalar.or(ObjectNote);
 export type Note = typeof Note.infer;
 
 export const LaneGroup = type({
