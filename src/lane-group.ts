@@ -15,7 +15,26 @@ export const FullNote = type({
     "v?": Pos,
     "w?": Pos,
     "p?": Property,
-}).onUndeclaredKey('reject');
+}).onUndeclaredKey('reject').narrow((v, ctx) => {
+    if(v.v) {
+        if(v.w) {
+            if(v.v.length !== v.w.length) {
+                return ctx.reject({
+                    expected: `w length same as v: ${v.v.length}`,
+                    actual: `${v.w.length}`,
+                    path: ['w'],
+                });
+            }
+        }
+    } else if(v.w?.length) {
+        return ctx.reject({
+            expected: `w should not present when v doesn't`,
+            path: ['w'],
+        });
+    }
+
+    return true;
+});
 export type FullNote = typeof FullNote.infer;
 
 const PosTuple = type.or([Pos], [Pos, Pos]).narrow((v, ctx) => {

@@ -4,7 +4,7 @@ export * from "./metadata.js";
 export * from "./timing.js";
 export * from "./lane-group.js";
 
-import { type, ArkErrors } from 'arktype';
+import { type } from 'arktype';
 
 import { Header } from "./header.js";
 import { Metadata } from "./metadata.js";
@@ -23,11 +23,5 @@ export type Chart = typeof Chart.infer;
 
 export function parseChart(data: unknown): Chart {
     if(typeof data === 'string') data = JSON.parse(data);
-    const result = Chart(data);
-
-    if(result instanceof ArkErrors) {
-        throw new Error(result.summary);
-    }
-
-    return result;
+    return Chart.assert(data);
 }
