@@ -61,7 +61,13 @@ describe("Note", function() {
         assert.deepStrictEqual(Note([123, 456]), {t: 123n, l: 456n});
     });
 
-    it("should accept a tuple of time, length, and positions", function() {});
+    it("should accept a tuple of time, length, and positions", function() {
+        assert.deepStrictEqual(Note([123, [42], 456]), {t: 123n, l: 456n, v: [42]});
+        assert.deepStrictEqual(Note([123, [[42]], 456]), {t: 123n, l: 456n, v: [42]});
+        assert.deepStrictEqual(Note([123, [1.2, 3.4], 456]), {t: 123n, l: 456n, v: [1.2], w: [3.4]});
+        assert.deepStrictEqual(Note([123, [[1.2], [3.4]], 456]), {t: 123n, l: 456n, v: [1.2], w: [3.4]});
+        assert.deepStrictEqual(Note([123, [[1.2, 3.4], [5.6, 7.8]], 456]), {t: 123n, l: 456n, v: [1.2, 3.4], w: [5.6, 7.8]});
+    });
 
     it("should accept a tuple of note values", function() {});
 

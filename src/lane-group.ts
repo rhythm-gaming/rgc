@@ -2,6 +2,7 @@ import { type, match, ArkErrors, ArkError } from 'arktype';
 
 import { U8, Coord, Tick, NumberTick, Property } from './scalar.js';
 
+// To simply deducted `Pos` type from `number[]|number[]` to `number[]`, add a trivial pipe at the end.
 export const Pos = Coord.array().or(Coord.pipe((v): [number] => [v])).pipe((v): number[] => v);
 export type Pos = typeof Pos.infer;
 
@@ -17,7 +18,13 @@ export const FullNote = type({
 }).onUndeclaredKey('reject');
 export type FullNote = typeof FullNote.infer;
 
-const PosTuple = type([Pos]).or(type([Pos, Pos])).narrow((v, ctx) => {
+const PosTuple = type.or([Pos], [Pos, Pos]).narrow((v, ctx) => {
+    // ArkType seems to suffer from a bug involving nested types.
+    // Manually apply unapplied pipes to mitigate from this bug.
+    for(let i=0; i<v.length; ++i) {
+        if(!Array.isArray(v[i])) v[i] = [v[i] as unknown as number];
+    }
+
     if(v.length === 1) return true;
 
     if(v[0].length !== v[1].length) {
