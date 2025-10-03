@@ -1,17 +1,19 @@
-# RGC chart file format
+# RGC specification
 
-Current version: `0.2.0-alpha-1`
+This is the specification for the RGC ("rhythm game chart") file format.
+
+Current version: `0.2.0-beta`
 
 ## Introduction
 
-The RGC ("rhythm game chart") file format is a JSON-based chart format for rhythm games. The RGC format aims to be able to represent charts from many different rhythm games.
+The RGC format is a flexible JSON-based chart format for rhythm games.
 
 The RGC format is inspired by [m4saka's KSON format](https://github.com/kshootmania/ksm-chart-format/blob/master/kson_format.md) for Sound Voltex charts and [the bmson format](https://bmson-spec.readthedocs.io/en/master/doc/index.html). The RGC format aims to be easily convertible to and from either formats.
 
 ### Goals
 
-- Able to support as many rhythm games as possible.
-- Easily convertible to/from as many rhythm game chart formats as possible.
+- Able to support various rhythm games.
+- Easily convertible to/from various rhythm game chart formats.
 - Enables quick prototyping of new rhythm games.
 
 ### Non-goals
@@ -105,13 +107,13 @@ Unless otherwise specified, fields of an object that are not specified in this d
 
 When there is a `// custom fields allowed` in the pseudocode of a struct, any implementation SHOULD preserve any unknown fields present in the struct.
 
-For any field specified in this document, the specified type SHOULD be used to represent the field value in JSON (for example, strings MUST NOT be used to store an `i32` field), except for `i64` or `u64`.
+For a field with number or string type, other than `i64` or `u64`, the specified type SHOULD be used to represent the field value in JSON. For example, strings SHOULD NOT be used to store an `i32` field.
 
-For any field with `i64` or `u64` type, the field's value is permitted to be stored as the base-10 `string` representation of the integer, and any reader MUST be able to handle these cases.
+For a field with `i64` or `u64` type, the field's value is permitted to be stored as the base-10 `string` representation of the integer; any reader MUST be able to handle these cases.
 
 Although not recommended, implementations MAY assume that absolute values of integer values are less than 2^53 (i.e. not greater than ECMAScript's `Number.MAX_SAFE_INTEGER`).
 
-The order of keys in an object MAY be arbitrary.
+Implementations SHOULD NOT assume the order of object keys as they MAY be arbitrary.
 
 ### Top-Level Object
 
