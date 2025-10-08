@@ -1,12 +1,25 @@
-import { type, match, ArkErrors, ArkError } from 'arktype';
+import { type, match, type Type, type Out, ArkErrors, type ArkError } from 'arktype';
 
+import type { ArrayArkType, BigIntLikeArkType, FloatLikeArkType, IntLikeArkType } from './type-util';
 import { U8, Coord, Tick, NumberTick, Property } from './scalar.js';
 
-// To simply deducted `Pos` type from `number[]|number[]` to `number[]`, add a trivial pipe at the end.
-export const Pos = Coord.array().or(Coord.pipe((v): [number] => [v])).pipe((v): number[] => v);
+type PosArkType = FloatLikeArkType[] | ((In: string | number) => Out<[number]>);
+export const Pos: Type<PosArkType> = Coord.array().or(Coord.pipe((v): [number] => [v]));
 export type Pos = typeof Pos.infer;
 
-export const FullNote = type({
+interface FullNoteArkType {
+    t: BigIntLikeArkType;
+    
+    id?: string;
+    k?: string;
+
+    l?: BigIntLikeArkType;
+    v?: PosArkType;
+    w?: PosArkType;
+    p?: Property;
+}
+
+export const FullNote: Type<FullNoteArkType> = type({
     "t": Tick,
     "id?": 'string',
     "k?": 'string',
@@ -37,7 +50,8 @@ export const FullNote = type({
 });
 export type FullNote = typeof FullNote.infer;
 
-const PosTuple = type.or([Pos], [Pos, Pos]).narrow((v, ctx) => {
+type PosTupleArkType = [PosArkType] | [PosArkType, PosArkType];
+const PosTuple: Type<PosTupleArkType> = type.or([Pos], [Pos, Pos]).narrow((v, ctx) => {
     // ArkType seems to suffer from a bug involving nested types.
     // Manually apply unapplied pipes to mitigate from this bug.
     for(let i=0; i<v.length; ++i) {
@@ -57,7 +71,8 @@ const PosTuple = type.or([Pos], [Pos, Pos]).narrow((v, ctx) => {
     return true;
 });
 
-const SimpleNoteScalar = Tick.pipe((v) => ({t: v}));
+type SimpleNoteScalarArkType = (In: typeof Tick.inferIn) => Out<FullNote>;
+const SimpleNoteScalar: Type<SimpleNoteScalarArkType> = Tick.pipe((v) => ({t: v}));
 const SimpleNoteArray = match({})
     .case(type.or("string", PosTuple, NumberTick), (v) => v)
     .case(Property, (v) => v)
@@ -133,13 +148,13 @@ const SimpleNoteArray = match({})
         return ret_obj;
 });
 
-const ObjectNote = type("Array|object").pipe((v) => Array.isArray(v) ? SimpleNoteArray(v) : FullNote(v));
+type ObjectNoteArkType = (In: object|unknown[]) => Out<FullNote>;
+const ObjectNote: Type<ObjectNoteArkType> = type("Array|object").pipe((v) => Array.isArray(v) ? SimpleNoteArray(v) : FullNote(v));
 
-// To simply deducted `Note` type to `FullNote`, add a trivial pipe at the end.
-export const Note = SimpleNoteScalar.or(ObjectNote).pipe((v): FullNote => v);
+export const Note: Type<SimpleNoteScalarArkType|ObjectNoteArkType> = SimpleNoteScalar.or(ObjectNote);
 export type Note = typeof Note.infer;
 
-export const NoteLane = Note.array().pipe((v): FullNote[] => {
+export const NoteLane: Type<ArrayArkType<typeof Note>> = Note.array().pipe((v): FullNote[] => {
     v.sort((x, y) => x.t < y.t ? -1 : x.t > y.t ? 1 : 0);
     return v;
 });
@@ -149,7 +164,12 @@ export type NoteLane<NoteType extends Note = Note> = NoteType[];
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _type_NoteLane: NoteLane = NoteLane.infer;
 
-export const LaneGroup = type({
+export interface LaneGroupArkType {
+    dim?: IntLikeArkType;
+    lane: ArrayArkType<typeof Note>[];
+}
+
+export const LaneGroup: Type<LaneGroupArkType> = type({
     "dim?": U8,
     "lane": NoteLane.array(),
 }).onUndeclaredKey('reject');

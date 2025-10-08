@@ -1,16 +1,26 @@
-import { type } from 'arktype';
+import { type, type Type } from 'arktype';
 import { isRecord } from "./scalar.js";
 
-export const MetadataResource = type({
+export interface MetadataResource {
+    author?: string;
+    path?: string;
+}
+
+export const MetadataResource: Type<MetadataResource> = type({
     "author?": "string",
     "path?": "string",
 }).onUndeclaredKey('ignore').narrow(isRecord);
-export type MetadataResource = typeof MetadataResource.infer;
 
-export const Metadata = type({
+export interface Metadata {
+    title?: string;
+    music?: MetadataResource;
+    chart?: MetadataResource;
+    jacket?: MetadataResource;
+}
+
+export const Metadata: Type<Metadata> = type({
     "title?": "string",
     "music?": MetadataResource,
     "chart?": MetadataResource,
     "jacket?": MetadataResource,
 }).onUndeclaredKey('ignore').narrow(isRecord);
-export type Metadata = typeof Metadata.infer;

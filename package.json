@@ -1,6 +1,6 @@
 {
   "name": "@rhythm-gaming/rgc",
-  "version": "0.2.0-beta",
+  "version": "0.2.0",
   "description": "Schema for RGC chart format, a JSON-based format for rhythm games.",
   "type": "module",
   "main": "dist/index.js",
@@ -39,19 +39,19 @@
   "homepage": "https://github.com/rhythm-gaming/rgc",
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.36.0",
+    "@eslint/js": "^9.37.0",
     "@types/chai": "^5.2.2",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^24.6.2",
-    "@typescript-eslint/eslint-plugin": "^8.45.0",
-    "@typescript-eslint/parser": "^8.45.0",
+    "@types/node": "^24.7.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.0",
+    "@typescript-eslint/parser": "^8.46.0",
     "chai": "^6.2.0",
-    "eslint": "^9.36.0",
+    "eslint": "^9.37.0",
     "mocha": "^11.7.4",
     "rimraf": "^6.0.1",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "arktype": "2.1.22"
+    "arktype": "^2.1.22"
   }
 }

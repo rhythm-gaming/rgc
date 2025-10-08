@@ -4,14 +4,23 @@ export * from "./metadata.js";
 export * from "./timing.js";
 export * from "./lane-group.js";
 
-import { type } from 'arktype';
+import { Type, type } from 'arktype';
 
 import { Header } from "./header.js";
 import { Metadata } from "./metadata.js";
-import { Timing } from "./timing.js";
-import { Note, LaneGroup } from "./lane-group.js";
+import { Timing, type TimingArkType } from "./timing.js";
+import { Note, LaneGroup, type LaneGroupArkType } from "./lane-group.js";
 
-export const Chart = type({
+export interface ChartArkType {
+    header: Header;
+    meta: Metadata;
+    timing: TimingArkType;
+    chart: {
+        [x: string]: LaneGroupArkType;
+    };
+}
+
+export const Chart: Type<ChartArkType> = type({
     "header": Header,
     "meta": Metadata,
     "timing": Timing,

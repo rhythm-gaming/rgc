@@ -1,10 +1,14 @@
-import { type } from 'arktype';
+import { type, type Type } from 'arktype';
 import { isRecord } from "./scalar.js";
 
-export const Header = type({
+export interface Header {
+    version?: string;
+    editor?: string;
+    game?: string;
+}
+
+export const Header: Type<Header> = type({
     "version?": "string",
     "editor?": "string",
     "game?": "string",
 }).onUndeclaredKey('ignore').narrow(isRecord);
-
-export type Header = typeof Header.infer;

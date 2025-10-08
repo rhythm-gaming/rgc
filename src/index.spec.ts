@@ -15,7 +15,7 @@ describe("parseChart", async function() {
         assert.strictEqual(chart.meta.title, "Calibration");
         
         assert.strictEqual(chart.timing.offset, 1000);
-        assert.strictEqual(chart.timing.res, 1);
+        assert.strictEqual(chart.timing.res, 1n);
 
         for(const [k, v] of Object.entries(chart.chart)) {
             assert.strictEqual(k, "bt");

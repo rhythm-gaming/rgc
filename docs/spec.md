@@ -2,7 +2,7 @@
 
 This is the specification for the RGC ("rhythm game chart") file format.
 
-Current version: `0.2.0-beta`
+Current version: `0.2.0`
 
 ## Introduction
 
