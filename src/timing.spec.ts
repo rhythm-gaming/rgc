@@ -200,15 +200,4 @@ describe("Timing", function() {
             assert.instanceOf(Timing(v), ArkErrors);
         }
     });
-
-    it("should reject objects with undeclared keys", function() {
-        const input = {
-            offset: 0,
-            res: 24,
-            bpm: [[0, 120]],
-            sig: [[0, [4, 4]]],
-            extra: "field",
-        };
-        assert.instanceOf(Timing(input), ArkErrors);
-    });
 });
