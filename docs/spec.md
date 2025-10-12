@@ -2,27 +2,27 @@
 
 This is the specification for the RGC ("rhythm game chart") file format.
 
-Current version: `0.2.0`
+The version number of the specification follows the version of this package (`@rhythm-gaming/rgc`).
 
 ## Introduction
 
-The RGC format is a flexible JSON-based chart format for rhythm games.
-
-The RGC format is inspired by [m4saka's KSON format](https://github.com/kshootmania/ksm-chart-format/blob/master/kson_format.md) for Sound Voltex charts and [the bmson format](https://bmson-spec.readthedocs.io/en/master/doc/index.html). The RGC format aims to be easily convertible to and from either formats.
+The RGC format is a JSON-based chart format for rhythm games.
 
 ### Goals
 
-- Able to support various rhythm games.
-- Easily convertible to/from various rhythm game chart formats.
-- Enables quick prototyping of new rhythm games.
+- The RGC format supports **various rhythm games**.
+- The RGC format can be **easily convertible** from/to other rhythm game chart formats.
+- The RGC format enables **rapid prototyping** of new rhythm games.
 
-### Non-goals
+### Non-Goals
 
-- Aims to be "the standard format" for any particular rhythm game.
+- The RGC format does not aim to be "the standard format" for any particular rhythm game.
   - In particular, the RGC format does not try to replace either KSON or bmson.
-- Specifies "the standard RGC representation" for any specific rhythm game.
-  - In other words, there can be multiple equally-valid representations for a particular chart from a rhythm game.
-  - Suggestions will be provided for several rhythm games, though.
+- This specification does not specify "the standard RGC representation" for any rhythm game.
+
+### Inspirations
+
+The RGC format is inspired by [m4saka's KSON format](https://github.com/kshootmania/ksm-chart-format/blob/master/kson_format.md) for Sound Voltex charts and [the bmson format](https://bmson-spec.readthedocs.io/en/master/doc/index.html). The RGC format aims to be easily convertible to and from either formats.
 
 ## Specification
 
