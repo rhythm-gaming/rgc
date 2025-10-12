@@ -14,7 +14,7 @@ function sortTickArray<T>(arr: Array<[Tick, T]>): Array<[Tick, T]> {
 }
 
 type BPMDefArkType = [BigIntLikeArkType, FloatLikeArkType];
-export const BPMDef: Type<BPMDefArkType> = type([Tick, F64]);
+export const BPMDef: Type<BPMDefArkType> = type([Tick, F64.narrow((v) => v > 0)]);
 export type BPMDef = typeof BPMDef.infer;
 
 export const BPMDefArray: Type<ArrayArkType<typeof BPMDef>> = BPMDef.array().pipe((v) => sortTickArray(v)).pipe((v): BPMDef[] => v.length > 0 ? v : [[0n, 120]]);
