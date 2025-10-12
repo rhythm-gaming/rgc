@@ -39,5 +39,5 @@ export const Timing: Type<TimingArkType> = type({
     "res": U16.pipe((n) => BigInt(n)).default(24n),
     "bpm": BPMDefArray.default(() => [[0n, 120]]),
     "sig": SigDefArray.default(() => [[0n, [4n, 4n]]]),
-}).onUndeclaredKey('reject');
+}).onUndeclaredKey('ignore');
 export type Timing = typeof Timing.infer;

@@ -28,7 +28,7 @@ export const FullNote: Type<FullNoteArkType> = type({
     "v?": Pos,
     "w?": Pos,
     "p?": Property,
-}).onUndeclaredKey('reject').narrow((v, ctx) => {
+}).onUndeclaredKey('ignore').narrow((v, ctx) => {
     if(v.v) {
         if(v.w) {
             if(v.v.length !== v.w.length) {
@@ -169,6 +169,6 @@ export interface LaneGroupArkType {
 export const LaneGroup: Type<LaneGroupArkType> = type({
     "dim?": U8,
     "lane": NoteLane.array(),
-}).onUndeclaredKey('reject');
+}).onUndeclaredKey('ignore');
 
 export type LaneGroup = typeof LaneGroup.infer;
