@@ -2,6 +2,8 @@
 
 This is the specification for the RGC ("rhythm game chart") file format.
 
+For the information on using this library, see [lib.md](./lib.md).
+
 The version number of the specification follows the version of this package (`@rhythm-gaming/rgc`).
 
 ## Introduction
