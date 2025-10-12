@@ -159,10 +159,7 @@ export const NoteLane: Type<ArrayArkType<typeof Note>> = Note.array().pipe((v): 
     return v;
 });
 
-export type NoteLane<NoteType extends Note = Note> = NoteType[];
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _type_NoteLane: NoteLane = NoteLane.infer;
+export type NoteLane = typeof NoteLane.infer;
 
 export interface LaneGroupArkType {
     dim?: IntLikeArkType;
@@ -174,7 +171,4 @@ export const LaneGroup: Type<LaneGroupArkType> = type({
     "lane": NoteLane.array(),
 }).onUndeclaredKey('reject');
 
-export type LaneGroup<NoteType extends Note = Note> = {dim?: number, lane: NoteLane<NoteType>[]};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _type_LaneGroup: LaneGroup = LaneGroup.infer;
+export type LaneGroup = typeof LaneGroup.infer;
