@@ -172,17 +172,22 @@ describe("Timing", function() {
     });
 
     it("should fill in missing fields with defaults", function() {
-        const input = {};
-        const result = Timing(input);
-        if (result instanceof ArkErrors) {
-            assert.fail(result.summary);
+        for(const input of [
+            {},
+            {bpm: []},
+            {sig: []},
+        ]) {
+            const result = Timing(input);
+            if (result instanceof ArkErrors) {
+                assert.fail(result.summary);
+            }
+            assert.deepStrictEqual(result, {
+                offset: 0,
+                res: 24n,
+                bpm: [[0n, 120]],
+                sig: [[0n, [4n, 4n]]],
+            });
         }
-        assert.deepStrictEqual(result, {
-            offset: 0,
-            res: 24n,
-            bpm: [[0n, 120]],
-            sig: [[0n, [4n, 4n]]],
-        });
     });
 
     it("should reject objects with invalid field values", function() {
