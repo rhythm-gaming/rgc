@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-import { ArkErrors } from 'arktype';
 
 import { TimeSignature, BPMDef, BPMDefArray, SigDef, SigDefArray, Timing } from "./timing.js";
 
