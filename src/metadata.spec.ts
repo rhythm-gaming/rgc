@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-import { ArkErrors } from 'arktype';
 
 import { Metadata } from "./metadata.js";
 
@@ -10,12 +9,12 @@ describe("Metadata", function() {
             {foo: 'foo', bar: 1234},
             {title: "x", x: 42}
         ] satisfies object[] as object[]) {
-            assert.deepStrictEqual(Metadata(obj), obj);
+            assert.deepStrictEqual(Metadata.assert(obj), obj);
         }
     });
     
     it("should accept an empty header", () => {
-        assert.deepStrictEqual(Metadata({}), {});
+        assert.deepStrictEqual(Metadata.assert({}), {});
     });
 
     it("should reject title with incorrect type", function() {
@@ -24,7 +23,7 @@ describe("Metadata", function() {
             1234, 5678n, {}, [], () => {},
             Symbol('foo'),
         ]) {
-            assert.instanceOf(Metadata({title}), ArkErrors);
+            assert.throws(() => Metadata.assert({title}));
         }
     });
     
@@ -32,7 +31,6 @@ describe("Metadata", function() {
         for(const key of ['music', 'chart', 'jacket']) {
             for(const value of [true, false, null, (void 0), 1234, 5678n, "hello", [], () => {}, Symbol('foo')]) {
                 const data = { [key]: value };
-                assert.instanceOf(Metadata(data), ArkErrors);
                 assert.throws(() => Metadata.assert(data));
             }
         }

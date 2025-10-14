@@ -13,11 +13,8 @@ describe("TimeSignature", function() {
             [65535, 65535],
         ]) {
             const expected = [BigInt(v[0]), BigInt(v[1])];
-            const result = TimeSignature(v);
-            if(result instanceof ArkErrors) {
-                assert.fail(result.summary);
-            }
-            assert.deepStrictEqual(result, expected);
+            const actual = TimeSignature.assert(v);
+            assert.deepStrictEqual(actual, expected);
         }
     });
 
@@ -35,7 +32,7 @@ describe("TimeSignature", function() {
             [4, 4, 4],
             "4/4",
         ]) {
-            assert.instanceOf(TimeSignature(v), ArkErrors);
+            assert.throws(() => TimeSignature.assert(v));
         }
     });
 });
@@ -48,11 +45,8 @@ describe("BPMDef", function() {
             ["123", "60.25"],
         ]) {
             const expected = [BigInt(v[0]), Number(v[1])];
-            const result = BPMDef(v);
-            if(result instanceof ArkErrors) {
-                assert.fail(result.summary);
-            }
-            assert.deepStrictEqual(result, expected);
+            const actual = BPMDef.assert(v);
+            assert.deepStrictEqual(actual, expected);
         }
     });
 
@@ -66,27 +60,26 @@ describe("BPMDef", function() {
             [0],
             [0, 120, 1],
         ]) {
-            assert.instanceOf(BPMDef(v), ArkErrors);
+            assert.throws(() => BPMDef.assert(v));
         }
     });
 });
 
 describe("BPMDefArray", function() {
     it("should handle empty and default cases", function() {
-        const result = BPMDefArray([]);
-        assert.deepStrictEqual(result, [[0n, 120]]);
+        assert.deepStrictEqual(BPMDefArray.assert([]), [[0n, 120]]);
     });
 
     it("should sort BPM definitions", function() {
         const input = [[100, 180], [0, 120], [50, 150]];
         const expected: Array<BPMDef> = [[0n, 120], [50n, 150], [100n, 180]];
-        const result = BPMDefArray(input);
-        assert.deepStrictEqual(result, expected);
+        const actual = BPMDefArray.assert(input);
+        assert.deepStrictEqual(actual, expected);
     });
 
     it("should reject arrays with invalid BPM definitions", function() {
         const input = [[0, 120], [-1, 180]];
-        assert.instanceOf(BPMDefArray(input), ArkErrors);
+        assert.throws(() => BPMDefArray.assert(input));
     });
 });
 
@@ -95,11 +88,8 @@ describe("SigDef", function() {
     it("should accept valid signature definitions", function() {
         const v = [0, [4, 4]];
         const expected = [0n, [4n, 4n]];
-        const result = SigDef(v);
-        if (result instanceof ArkErrors) {
-            assert.fail(result.summary);
-        }
-        assert.deepStrictEqual(result, expected);
+        const actual = SigDef.assert(v);
+        assert.deepStrictEqual(actual, expected);
     });
 
     it("should reject invalid signature definitions", function() {
@@ -108,42 +98,33 @@ describe("SigDef", function() {
             [0, [0, 4]],
             [0, "4/4"],
         ]) {
-            assert.instanceOf(SigDef(v), ArkErrors);
+            assert.throws(() => SigDef.assert(v));
         }
     });
 });
 
 describe("SigDefArray", function() {
     it("should handle empty and default cases", function() {
-        const result = SigDefArray([]);
-        if (result instanceof ArkErrors) {
-            assert.fail(result.summary);
-        }
+        const result = SigDefArray.assert([]);
         assert.deepStrictEqual(result, [[0n, [4n, 4n]]]);
     });
 
     it("should sort signature definitions", function() {
         const input = [[100, [3, 4]], [0, [4, 4]], [50, [2, 4]]];
         const expected: Array<SigDef> = [[0n, [4n, 4n]], [50n, [2n, 4n]], [100n, [3n, 4n]]];
-        const result = SigDefArray(input);
-        if (result instanceof ArkErrors) {
-            assert.fail(result.summary);
-        }
-        assert.deepStrictEqual(result, expected);
+        const actual = SigDefArray.assert(input);
+        assert.deepStrictEqual(actual, expected);
     });
 
     it("should reject arrays with invalid signature definitions", function() {
         const input = [[0, [4, 4]], [10, [0, 4]]];
-        assert.instanceOf(SigDefArray(input), ArkErrors);
+        assert.throws(() => SigDefArray.assert(input));
     });
 });
 
 describe("Timing", function() {
     it("should return default values for an empty object", function() {
-        const result = Timing({});
-        if (result instanceof ArkErrors) {
-            assert.fail(result.summary);
-        }
+        const result = Timing.assert({});
         assert.deepStrictEqual(result, {
             offset: 0,
             res: 24n,
@@ -159,10 +140,7 @@ describe("Timing", function() {
             bpm: [[0, 140], [1920, 160]],
             sig: [[0, [4, 4]], [960, [3, 4]]],
         };
-        const result = Timing(input);
-        if (result instanceof ArkErrors) {
-            assert.fail(result.summary);
-        }
+        const result = Timing.assert(input);
         assert.deepStrictEqual(result, {
             offset: -100,
             res: 480n,
@@ -177,10 +155,7 @@ describe("Timing", function() {
             {bpm: []},
             {sig: []},
         ]) {
-            const result = Timing(input);
-            if (result instanceof ArkErrors) {
-                assert.fail(result.summary);
-            }
+            const result = Timing.assert(input);
             assert.deepStrictEqual(result, {
                 offset: 0,
                 res: 24n,
@@ -197,7 +172,7 @@ describe("Timing", function() {
             { bpm: [[-1, 120]] },
             { sig: [[0, [0, 4]]] },
         ]) {
-            assert.instanceOf(Timing(v), ArkErrors);
+            assert.throws(() => Timing.assert(v));
         }
     });
 });

@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-import { ArkErrors } from 'arktype';
 
 import { U8, U16, I32, U64, F64, Tick, NumberTick, Property } from "./scalar.js";
 
@@ -7,19 +6,13 @@ function testPlainIntType(IntType: (typeof U8|typeof U16|typeof I32), accept_val
     it("should accept valid int values", function() {
         for(const v of accept_values) {
             for(const w of [v, `${v}`, BigInt(v)]) {
-                const x = IntType(w);
-                if(x instanceof ArkErrors) {
-                    assert.fail(x.summary);
-                }
-                assert.strictEqual(x, v, `testing ${typeof w} type of ${v}`);
-                assert.doesNotThrow(() => IntType.assert(w));
+                assert.strictEqual(IntType.assert(w), v, `testing ${typeof w} type of ${v}`);
             }
         }
     });
     it("should reject int values out of range", function() {
         for(const v of reject_values) {
             for(const w of [v, `${v}`, BigInt(v)]) {
-                assert.instanceOf(IntType(w), ArkErrors);
                 assert.throws(() => IntType.assert(w));
             }
         }
@@ -27,14 +20,12 @@ function testPlainIntType(IntType: (typeof U8|typeof U16|typeof I32), accept_val
     it("should reject non-integer or non-finite values", function() {
         for(const v of [-0.01, 0.5, 42.1, 255.99, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN]) {
             for(const w of [v, `${v}`]) {
-                assert.instanceOf(IntType(w), ArkErrors);
                 assert.throws(() => IntType.assert(w));
             }
         }
     });
     it("should reject non-number values", function() {
         for(const v of ["", "hello", {}, [], true, false, null, undefined]) {
-            assert.instanceOf(IntType(v), ArkErrors);
             assert.throws(() => IntType.assert(v));
         }
     });
@@ -56,25 +47,15 @@ function testUint64Type(Uint64: (typeof U64)|(typeof NumberTick), omit_string: b
             `${BigInt(Number.MAX_SAFE_INTEGER) + 1n}`,
         ]) {
             if(omit_string && typeof v === 'string') {
-                assert.instanceOf(Uint64(v), ArkErrors);
                 assert.throws(() => Uint64.assert(v));
-                continue;
+            } else {
+                assert.strictEqual(Uint64.assert(v), BigInt(v), `testing ${typeof v} type of ${v}`);
             }
-
-            const x = Uint64(v);
-
-            if(x instanceof ArkErrors) {
-                assert.fail(x.summary);
-            }
-
-            assert.strictEqual(x, BigInt(v), `testing ${typeof v} type of ${v}`);
-            assert.doesNotThrow(() => Uint64.assert(v));
         }
     });
     
     it("should reject negative values", function() {
         for(const v of [-1, -42, -1n, "-1", "-42"]) {
-            assert.instanceOf(Uint64(v), ArkErrors);
             assert.throws(() => Uint64.assert(v));
         }
     });
@@ -88,14 +69,12 @@ function testUint64Type(Uint64: (typeof U64)|(typeof NumberTick), omit_string: b
             Number.NaN,
             "", "0.5", "42.1",
         ]) {
-            assert.instanceOf(Uint64(v), ArkErrors);
             assert.throws(() => Uint64.assert(v));
         }
     });
 
     it("should reject non-number-like values", function() {
         for(const v of ["hello", {}, [], true, false, null, undefined]) {
-            assert.instanceOf(Uint64(v), ArkErrors);
             assert.throws(() => Uint64.assert(v));
         }
     });
@@ -135,13 +114,7 @@ describe("F64", function() {
             for(const w of [v, `${v}`]) {
                 if(typeof w === 'string' && w.includes("e")) continue;
 
-                const x = F64(w);
-                if(x instanceof ArkErrors) {
-                    assert.fail(x.summary);
-                }
-
-                assert.strictEqual(x, v, `testing ${typeof w} type of ${v}`);
-                assert.doesNotThrow(() => F64.assert(w));
+                assert.strictEqual(F64.assert(w), v, `testing ${typeof w} type of ${v}`);
             }
         }
     });
@@ -153,7 +126,6 @@ describe("F64", function() {
             Number.NaN
         ]) {
             for(const w of [v, `${v}`]) {
-                assert.instanceOf(F64(w), ArkErrors);
                 assert.throws(() => F64.assert(w));
             }
         }
@@ -161,7 +133,6 @@ describe("F64", function() {
     
     it("should reject non-number values", function() {
         for(const v of ["", "hello", {}, [], true, false, null, undefined, 123n]) {
-            assert.instanceOf(F64(v), ArkErrors);
             assert.throws(() => F64.assert(v));
         }
     });
@@ -178,7 +149,7 @@ describe("NumberTick", function() {
 describe("Property", function() {
     it("should accept records", function() {
         const v = {hello: "world", foo: 42, bar: {}};
-        assert.deepStrictEqual(Property(v), v);
+        assert.deepStrictEqual(Property.assert(v), v);
     });
 
     it("should reject non-records", function() {
@@ -188,7 +159,6 @@ describe("Property", function() {
             "", "hello", true, false,
             [], [1, 2, 3],
         ]) {
-            assert.instanceOf(Property(v), ArkErrors);
             assert.throws(() => Property.assert(v));
         }
     });
