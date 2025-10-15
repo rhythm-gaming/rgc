@@ -4,7 +4,8 @@ export * from "./metadata.js";
 export * from "./timing.js";
 export * from "./lane-group.js";
 
-import { Type, type } from 'arktype';
+import { type } from 'arktype';
+import { exportType } from "./type-util.js";
 
 import { Header } from "./header.js";
 import { Metadata } from "./metadata.js";
@@ -12,23 +13,15 @@ import { Timing } from "./timing.js";
 import { LaneGroup } from "./lane-group.js";
 import { checkIsRecord } from "./scalar.js";
 
-export interface Chart {
-    header: Header;
-    meta: Metadata;
-    timing: Timing;
-    chart: {
-        [x: string]: LaneGroup;
-    };
-}
-
-export const Chart: Type<Chart> = type({
+export const Chart = exportType(type({
     "header": Header,
     "meta": Metadata,
     "timing": Timing,
     "chart": {
         "[string]": LaneGroup,
     },
-}).onUndeclaredKey('ignore').narrow(checkIsRecord);
+}).onUndeclaredKey('ignore').narrow(checkIsRecord));
+export type Chart = typeof Chart.infer;
 
 export function parseChart(data: unknown): Chart {
     if(typeof data === 'string') data = JSON.parse(data);

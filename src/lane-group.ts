@@ -1,24 +1,13 @@
-import { type, match, type Type, type Out, ArkErrors, type ArkError } from 'arktype';
+import { type, match, ArkErrors, type ArkError } from 'arktype';
 
-import { exportType, type PublicType } from "./type-util.js";
+import { exportType } from "./type-util.js";
 import { U8, Coord, Tick, NumberTick, Property, checkIsRecord } from "./scalar.js";
 
-export type Pos = Coord[];
-export const Pos: PublicType<Pos> = exportType(Coord.array().or(Coord.pipe((v): [number] => [v])));
+// Last pipe was added for `tsc` to simplify the deduced type of `Pos`.
+export const Pos = exportType(Coord.array().or(Coord.pipe((v) => [v])).pipe((v): number[] => v));
+export type Pos = typeof Pos.infer;
 
-interface FullNote {
-    t: Tick;
-    
-    id?: string;
-    k?: string;
-
-    l?: Tick;
-    w?: Pos;
-    v?: Pos;
-    p?: Property;
-}
-
-export const FullNote: PublicType<FullNote> = exportType(type({
+export const FullNote = exportType(type({
     "t": Tick,
     "id?": 'string',
     "k?": 'string',
@@ -47,9 +36,9 @@ export const FullNote: PublicType<FullNote> = exportType(type({
 
     return true;
 }));
+export type FullNote = typeof FullNote.infer;
 
-export type PosTuple = [Pos] | [Pos, Pos];
-export const PosTuple: PublicType<PosTuple> = exportType(type.or([Pos], [Pos, Pos]).narrow((v, ctx) => {
+export const PosTuple = exportType(type.or([Pos], [Pos, Pos]).narrow((v, ctx) => {
     // ArkType seems to suffer from a bug involving nested types.
     // Manually apply unapplied pipes to mitigate from this bug.
     for(let i=0; i<v.length; ++i) {
@@ -68,6 +57,7 @@ export const PosTuple: PublicType<PosTuple> = exportType(type.or([Pos], [Pos, Po
 
     return true;
 }));
+export type PosTuple = typeof PosTuple.infer;
 
 const SimpleNoteScalar = Tick.pipe((v): FullNote => ({t: v}));
 const SimpleNoteArray = match({})
@@ -145,25 +135,19 @@ const SimpleNoteArray = match({})
         return ret_obj;
 });
 
-type ObjectNoteArkType = (In: object|unknown[]) => Out<FullNote>;
-const ObjectNote: Type<ObjectNoteArkType> = type("Array|object").pipe((v) => Array.isArray(v) ? SimpleNoteArray(v) : FullNote(v));
+const ObjectNote = type("Array|object").pipe((v) => Array.isArray(v) ? SimpleNoteArray(v) : FullNote(v));
 
-export type Note = FullNote;
-export const Note: PublicType<FullNote> = exportType(SimpleNoteScalar.or(ObjectNote));
+export const Note = exportType(SimpleNoteScalar.or(ObjectNote));
+export type Note = typeof Note.infer;
 
-export type NoteLane = Note[];
-export const NoteLane: PublicType<NoteLane> = exportType(Note.array().pipe((v): FullNote[] => {
+export const NoteLane = exportType(Note.array().pipe((v): FullNote[] => {
     v.sort((x, y) => x.t < y.t ? -1 : x.t > y.t ? 1 : 0);
     return v;
 }));
+export type NoteLane = typeof NoteLane.infer;
 
-
-export interface LaneGroup {
-    dim?: U8;
-    lane: NoteLane[];
-}
-
-export const LaneGroup: PublicType<LaneGroup> = exportType(type({
+export const LaneGroup = exportType(type({
     "dim?": U8,
     "lane": NoteLane.array(),
 }).onUndeclaredKey('ignore'));
+export type LaneGroup = typeof LaneGroup.infer;
