@@ -1,25 +1,24 @@
 import { type, match, type Type, type Out, ArkErrors, type ArkError } from 'arktype';
 
-import type { ArrayArkType, BigIntLikeArkType, FloatLikeArkType, IntLikeArkType } from './type-util';
-import { U8, Coord, Tick, NumberTick, Property } from './scalar.js';
+import { exportType, type PublicType } from "./type-util.js";
+import { U8, Coord, Tick, NumberTick, Property, checkIsRecord } from "./scalar.js";
 
-type PosArkType = FloatLikeArkType[] | ((In: string | number) => Out<[number]>);
-export const Pos: Type<PosArkType> = Coord.array().or(Coord.pipe((v): [number] => [v]));
-export type Pos = typeof Pos.infer;
+export type Pos = Coord[];
+export const Pos: PublicType<Pos> = exportType(Coord.array().or(Coord.pipe((v): [number] => [v])));
 
-interface FullNoteArkType {
-    t: BigIntLikeArkType;
+interface FullNote {
+    t: Tick;
     
     id?: string;
     k?: string;
 
-    l?: BigIntLikeArkType;
-    v?: PosArkType;
-    w?: PosArkType;
+    l?: Tick;
+    w?: Pos;
+    v?: Pos;
     p?: Property;
 }
 
-export const FullNote: Type<FullNoteArkType> = type({
+export const FullNote: PublicType<FullNote> = exportType(type({
     "t": Tick,
     "id?": 'string',
     "k?": 'string',
@@ -28,7 +27,7 @@ export const FullNote: Type<FullNoteArkType> = type({
     "v?": Pos,
     "w?": Pos,
     "p?": Property,
-}).onUndeclaredKey('ignore').narrow((v, ctx) => {
+}).onUndeclaredKey('ignore').narrow(checkIsRecord).narrow((v, ctx) => {
     if(v.v) {
         if(v.w) {
             if(v.v.length !== v.w.length) {
@@ -47,11 +46,10 @@ export const FullNote: Type<FullNoteArkType> = type({
     }
 
     return true;
-});
-export type FullNote = typeof FullNote.infer;
+}));
 
-type PosTupleArkType = [PosArkType] | [PosArkType, PosArkType];
-const PosTuple: Type<PosTupleArkType> = type.or([Pos], [Pos, Pos]).narrow((v, ctx) => {
+export type PosTuple = [Pos] | [Pos, Pos];
+export const PosTuple: PublicType<PosTuple> = exportType(type.or([Pos], [Pos, Pos]).narrow((v, ctx) => {
     // ArkType seems to suffer from a bug involving nested types.
     // Manually apply unapplied pipes to mitigate from this bug.
     for(let i=0; i<v.length; ++i) {
@@ -69,10 +67,9 @@ const PosTuple: Type<PosTupleArkType> = type.or([Pos], [Pos, Pos]).narrow((v, ct
     }
 
     return true;
-});
+}));
 
-type SimpleNoteScalarArkType = (In: typeof Tick.inferIn) => Out<FullNote>;
-const SimpleNoteScalar: Type<SimpleNoteScalarArkType> = Tick.pipe((v) => ({t: v}));
+const SimpleNoteScalar = Tick.pipe((v): FullNote => ({t: v}));
 const SimpleNoteArray = match({})
     .case(type.or("string", PosTuple, NumberTick), (v) => v)
     .case(Property, (v) => v)
@@ -151,24 +148,22 @@ const SimpleNoteArray = match({})
 type ObjectNoteArkType = (In: object|unknown[]) => Out<FullNote>;
 const ObjectNote: Type<ObjectNoteArkType> = type("Array|object").pipe((v) => Array.isArray(v) ? SimpleNoteArray(v) : FullNote(v));
 
-export const Note: Type<SimpleNoteScalarArkType|ObjectNoteArkType> = SimpleNoteScalar.or(ObjectNote);
-export type Note = typeof Note.infer;
+export type Note = FullNote;
+export const Note: PublicType<FullNote> = exportType(SimpleNoteScalar.or(ObjectNote));
 
-export const NoteLane: Type<ArrayArkType<typeof Note>> = Note.array().pipe((v): FullNote[] => {
+export type NoteLane = Note[];
+export const NoteLane: PublicType<NoteLane> = exportType(Note.array().pipe((v): FullNote[] => {
     v.sort((x, y) => x.t < y.t ? -1 : x.t > y.t ? 1 : 0);
     return v;
-});
+}));
 
-export type NoteLane = typeof NoteLane.infer;
 
-export interface LaneGroupArkType {
-    dim?: IntLikeArkType;
-    lane: ArrayArkType<typeof Note>[];
+export interface LaneGroup {
+    dim?: U8;
+    lane: NoteLane[];
 }
 
-export const LaneGroup: Type<LaneGroupArkType> = type({
+export const LaneGroup: PublicType<LaneGroup> = exportType(type({
     "dim?": U8,
     "lane": NoteLane.array(),
-}).onUndeclaredKey('ignore');
-
-export type LaneGroup = typeof LaneGroup.infer;
+}).onUndeclaredKey('ignore'));

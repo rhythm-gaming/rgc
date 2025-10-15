@@ -1,5 +1,5 @@
 import { type, type Type } from 'arktype';
-import { isRecord } from "./scalar.js";
+import { checkIsRecord } from "./scalar.js";
 
 export interface MetadataResource {
     author?: string;
@@ -9,7 +9,7 @@ export interface MetadataResource {
 export const MetadataResource: Type<MetadataResource> = type({
     "author?": "string",
     "path?": "string",
-}).onUndeclaredKey('ignore').narrow(isRecord);
+}).onUndeclaredKey('ignore').narrow(checkIsRecord);
 
 export interface Metadata {
     title?: string;
@@ -23,4 +23,4 @@ export const Metadata: Type<Metadata> = type({
     "music?": MetadataResource,
     "chart?": MetadataResource,
     "jacket?": MetadataResource,
-}).onUndeclaredKey('ignore').narrow(isRecord);
+}).onUndeclaredKey('ignore').narrow(checkIsRecord);
